@@ -1,9 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="sheridan.tudballr.flush">
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission. ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET"/>
    <application
-        android:label="flush"
+        android:label="Flush"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/toilet">
+
+       <meta-data android:name="com.google.android.geo.API_KEY"
+                  android:value="AIzaSyB5UkVsme5DhJOxGPCpc2SysCUueNYeGIY"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
