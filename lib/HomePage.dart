@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import 'SearchPage.dart';
+
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
@@ -13,6 +15,9 @@ class _HomePageState extends State<HomePage>{
   Position? _currentPosition;
 
   final LatLng _center = const LatLng(50, -120);
+
+  Icon customIcon = const Icon(Icons.search);
+  Widget customSearchBar = const Text('Flush', textAlign: TextAlign.center);
 
   void _onMapCreated(GoogleMapController controller){
     mapController = controller;
@@ -57,7 +62,8 @@ class _HomePageState extends State<HomePage>{
     _getCurrentPosition();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home Page'),
+        centerTitle: true,
+        title: customSearchBar,
         elevation: 2,
       ),
       body: GoogleMap(
@@ -66,6 +72,17 @@ class _HomePageState extends State<HomePage>{
           target: LatLng(_currentPosition!.latitude,_currentPosition!.longitude),
           zoom: 10,
         ),
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(right: 50),
+        child: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => SearchPage()));
+        },
+        backgroundColor: Colors.blue,
+
+        child: const Icon(Icons.search)
+        )
       ),
     );
   }
