@@ -1,3 +1,4 @@
+import 'package:flush/RestroomPage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -44,7 +45,18 @@ class _SearchPageState extends State<SearchPage>{
           ],
         )
 
-      )
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(right: 50),
+        child: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => RestroomPage()));
+            },
+            backgroundColor: Colors.blue,
+
+            child: const Icon(Icons.forward)
+        ),
+      ),
     );
   }
 }
