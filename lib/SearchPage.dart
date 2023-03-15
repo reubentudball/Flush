@@ -1,8 +1,9 @@
+import 'package:flush/RestroomPage.dart';
 import 'package:flutter/material.dart';
 
 class SearchPage extends StatefulWidget{
-  @override
-  _SearchPageState createState() => _SearchPageState();
+    @override
+    _SearchPageState createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<SearchPage>{
@@ -26,7 +27,21 @@ class _SearchPageState extends State<SearchPage>{
             color: Colors.black,
           ),
         ),
-      )
+      ),
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(right: 50),
+          child: FloatingActionButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => RestroomPage()));
+                },
+              backgroundColor: Colors.blue,
+              child: const Icon(Icons.forward)
+
+
+          )
+
+
+    ),
     );
   }
 
