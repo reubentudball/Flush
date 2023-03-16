@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import 'RestroomPage.dart';
 import 'SearchPage.dart';
 
 class HomePage extends StatefulWidget {
@@ -82,8 +83,10 @@ class _HomePageState extends State<HomePage>{
         backgroundColor: Colors.blue,
 
         child: const Icon(Icons.search)
-        )
+        ),
       ),
+
+
     );
   }
 }
