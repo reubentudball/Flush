@@ -1,5 +1,6 @@
 import 'package:flush/HomePage.dart';
 import 'package:flutter/material.dart';
+import 'package:flush/RestroomDetail.dart';
 
 import 'CommentPage.dart';
 
@@ -64,7 +65,7 @@ class _RestroomPageState extends State<RestroomPage>{
                   onPrimary: Colors.white
                 ),
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => HomePage()));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => RestroomDetail()));
                     },
                   child: const Text('Details', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 15,),
                   )
