@@ -76,7 +76,7 @@ class _SortingDropDownState extends State<SortingDropDown>{
     return DropdownButton<String>(
       value: defaultValue,
       icon: const Icon(Icons.sort),
-      
+
       onChanged: (String? value) {
         setState(() {
           defaultValue = value!;
