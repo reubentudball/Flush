@@ -1,6 +1,6 @@
 import 'package:flush/HomePage.dart';
 import 'package:flutter/material.dart';
-import 'package:flush/RestroomPage.dart';
+import 'package:flush/ReviewPage.dart';
 
 const List<String> listHistory = <String> ['Default'];
 
