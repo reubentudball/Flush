@@ -1,10 +1,27 @@
 import 'package:flutter/material.dart';
+import 'Review.dart';
+
+
 class CommentPage extends StatefulWidget{
+
+  final Review reviews;
+  CommentPage({Key? key, required this.reviews }) : super(key:key);
+
   @override
-  _CommentPageState createState() => _CommentPageState();
+  _CommentPageState createState() => new _CommentPageState(reviews);
 }
 
 class _CommentPageState extends State<CommentPage> {
+  Review reviews;
+  _CommentPageState(this.reviews);
+  TextEditingController myController = TextEditingController();
+
+  @override
+  void dispose() {
+    myController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -13,10 +30,11 @@ class _CommentPageState extends State<CommentPage> {
       ),
       body: Column(
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(15),
           child:
           TextField(
+            controller: myController,
             maxLines: 6,
             minLines: 1,
             decoration:InputDecoration(
@@ -30,7 +48,11 @@ class _CommentPageState extends State<CommentPage> {
           Padding(
             padding: EdgeInsets.all(15),
             child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  reviews.feedback = myController.text;
+
+
+                },
                 child: Text('Save')),
           )
 
