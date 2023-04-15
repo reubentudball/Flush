@@ -1,8 +1,11 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'SearchPage.dart';
+import 'TagBathroomPage.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -11,6 +14,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late GoogleMapController mapController;
+
+  List<Marker> _markers = [];
 
   Position? _currentPosition;
 
@@ -97,12 +102,15 @@ class _HomePageState extends State<HomePage> {
           elevation: 2,
         ),
         body: GoogleMap(
+          markers: Set.from(_markers),
           onMapCreated: _onMapCreated,
           initialCameraPosition: CameraPosition(
             target: LatLng(
                 _currentPosition!.latitude, _currentPosition!.longitude),
             zoom: 15,
           ),
+          onTap: _handleTap,
+
         ),
         floatingActionButton: Padding(
             padding: const EdgeInsets.only(right: 50),
@@ -119,4 +127,31 @@ class _HomePageState extends State<HomePage> {
       );
     }
   }
+
+  _handleTap(LatLng pos){
+    setState(() {
+      _markers = [];
+      _markers.add(
+        Marker(markerId: MarkerId(pos.toString()),
+          position: pos,
+          onTap: () {
+            showDialog(context: context, builder: (BuildContext context){
+              return AlertDialog(content: Text("Would you like to add a bathroom at this location?"),
+              actions: [
+                TextButton(onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => TagBathroomPage()));
+                }, child: Text("Ok")),
+                TextButton(onPressed: (){
+                  Navigator.pop(context);
+                },child: Text("No Thanks"))
+
+              ]);
+            });
+          }
+        )
+      );
+    });
+  }
+
+
 }
