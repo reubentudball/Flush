@@ -109,7 +109,10 @@ class _LoginPageState extends State<LoginPage> {
             SizedBox(
               height: 130,
             ),
-            Text('New User? Create Account')
+            TextButton(
+              onPressed: (){},
+              child: Text('New User? Create Account'),
+            )
           ],
         ),
       ),

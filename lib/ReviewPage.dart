@@ -1,12 +1,17 @@
 import 'package:flush/HomePage.dart';
 import 'package:flutter/material.dart';
+
 import 'Review.dart';
+
+import 'package:flush/RestroomDetail.dart';
+
 import 'CommentPage.dart';
 
 const List<String> listCleanliness = <String> ['Very Clean','Clean','Messy','Very Messy'];
 const List<String> listTraffic = <String> ['High','Moderate','Low','None'];
 const List<String> listSize = <String> ['Single-Use','2-4','5-7','More than 7'];
 const List<String> listAccessibility = <String> ['Yes','No'];
+
 var cleanliness;
 var traffic;
 var size;
@@ -14,6 +19,7 @@ var feedback;
 var accessibilty = true;
 
 var review = Review.create(cleanliness,traffic, size, feedback,accessibilty);
+
 
 
 
@@ -38,11 +44,13 @@ class _DropdownButtonCleanlinessState extends State<DropdownButtonCleanliness> {
       ),
       onChanged: (String? value) {
 
+
         // This is called when the user selects an item.
         setState(() {
           dropdownValue = value!;
           cleanliness = dropdownValue;
           review.cleanliness = cleanliness;
+
         });
       },
       items: listCleanliness.map<DropdownMenuItem<String>>((String value) {
@@ -78,11 +86,12 @@ class _DropdownButtonTrafficState extends State<DropdownButtonTraffic> {
       ),
       onChanged: (String? value) {
 
+
         // This is called when the user selects an item.
         setState(() {
           dropdownValue = value!;
           traffic = dropdownValue;
-          review.traffic = traffic;
+
         });
       },
       items: listTraffic.map<DropdownMenuItem<String>>((String value) {
@@ -118,11 +127,13 @@ class _DropdownButtonSizeState extends State<DropdownButtonSize> {
       ),
       onChanged: (String? value) {
 
+
         // This is called when the user selects an item.
         setState(() {
           dropdownValue = value!;
           size = dropdownValue;
           review.size = size;
+
         });
       },
       items: listSize.map<DropdownMenuItem<String>>((String value) {
@@ -158,6 +169,7 @@ class _DropdownButtonAccessibilityState extends State<DropdownButtonAccessibilit
       ),
       onChanged: (String? value) {
 
+
         // This is called when the user selects an item.
         setState(() {
           dropdownValue = value!;
@@ -167,6 +179,7 @@ class _DropdownButtonAccessibilityState extends State<DropdownButtonAccessibilit
             accessibilty = false;
           }
           review.accessibility = accessibilty;
+
         });
       },
       items: listAccessibility.map<DropdownMenuItem<String>>((String value) {
