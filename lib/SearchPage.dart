@@ -50,7 +50,7 @@ class _SearchPageState extends State<SearchPage>{
         padding: const EdgeInsets.only(right: 50),
         child: FloatingActionButton(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => RestroomPage()));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => ReviewPage()));
             },
             backgroundColor: Colors.blue,
 
