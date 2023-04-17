@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1071559938141",
+    "firebase_url": "https://flush-d0dc1-default-rtdb.firebaseio.com",
+    "project_id": "flush-d0dc1",
+    "storage_bucket": "flush-d0dc1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1071559938141:android:931ba176b765a5e6debdb4",
+        "android_client_info": {
+          "package_name": "sheridan.tudballr.flush"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1071559938141-e32d63m8d2aqjpl3rpkasmsmdlhm51tp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-syhHOkeeHAGA0wgzWbrKxKsPxFfPozg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1071559938141-e32d63m8d2aqjpl3rpkasmsmdlhm51tp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
