@@ -46,17 +46,7 @@ class _SearchPageState extends State<SearchPage>{
         )
 
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(right: 50),
-        child: FloatingActionButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => ReviewPage()));
-            },
-            backgroundColor: Colors.blue,
 
-            child: const Icon(Icons.forward)
-        ),
-      ),
     );
   }
 }

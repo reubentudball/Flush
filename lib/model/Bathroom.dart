@@ -11,7 +11,7 @@ class Bathroom{
   final String title;
   final String directions;
   final LatLng location;
-  late List<String>? reviews = [];
+  late CollectionReference? reviews;
   late List<String>? comments = [];
 
 
@@ -35,7 +35,7 @@ class Bathroom{
       title: data["title"],
       directions: data["directions"],
       location: LatLng(data["location"].latitude as double, data["location"].longitude as double),
-      reviews: List<String>.from(data["reviews"] as List),
+      reviews: data["Reviews"],
       comments: List<String>.from(data["comments"] as List)
     );
   }

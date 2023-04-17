@@ -1,15 +1,32 @@
 import 'package:flush/HomePage.dart';
+import 'package:flush/ReviewList.dart';
 import 'package:flutter/material.dart';
 import 'package:flush/ReviewPage.dart';
+
+import 'model/Bathroom.dart';
 
 const List<String> listHistory = <String> ['Default'];
 
 class RestroomDetail extends StatefulWidget{
+  final Bathroom bathroom;
+
+  RestroomDetail({super.key, required this.bathroom});
   @override
   _RestroomDetailState createState() => _RestroomDetailState();
 }
 
 class _RestroomDetailState extends State<RestroomDetail> {
+
+
+  late Bathroom bathroom;
+
+  @override
+  void initState(){
+    super.initState();
+    bathroom = widget.bathroom;
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,7 +98,7 @@ class _RestroomDetailState extends State<RestroomDetail> {
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children:  const [
+            children:  [
 
               //TODO: Make dropdown list that connects to server, that displays
               //the info depending on selected saved location
@@ -135,10 +152,17 @@ class _RestroomDetailState extends State<RestroomDetail> {
               ),
               ),
 
+
+              ElevatedButton(onPressed: (){Navigator.push(context, MaterialPageRoute(builder: (_) => ReviewList(bathroomId: bathroom.id!)));}, child: Text("All Reviews"))
             ],
+
           ),
+
+
         ],
         ),
+
+
 
     );
   }
