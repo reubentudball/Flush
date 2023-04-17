@@ -17,3 +17,4 @@ class Review{
     print("$cleanliness, $traffic, $size,$feedback,$accessibility");
   }
 }
+

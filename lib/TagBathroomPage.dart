@@ -1,19 +1,45 @@
 import 'package:flush/HomePage.dart';
+import 'package:flush/model/BathroomRepo.dart';
 import 'package:flutter/material.dart';
 import 'package:flush/RestroomDetail.dart';
+import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 
 import 'CommentPage.dart';
+import 'model/Bathroom.dart';
 
 const List<String> listCleanliness = <String> ['Very Clean','Clean','Messy','Very Messy'];
 const List<String> listTraffic = <String> ['High','Moderate','Low','None'];
 const List<String> listSize = <String> ['Single-Use','2-4','5-7','More than 7'];
 const List<String> listAccessibility = <String> ['Yes','No'];
 class TagBathroomPage extends StatefulWidget{
+
+  final LatLng location;
+
+  TagBathroomPage({super.key, required this.location});
+
   @override
   _TagBathroomPageState createState() => _TagBathroomPageState();
 
 }
 class _TagBathroomPageState extends State<TagBathroomPage>{
+
+  final bathroomRepo = Get.put(BathroomRepository());
+
+  String title = "";
+  String directions = "";
+
+
+  late LatLng location;
+
+  @override
+  void initState(){
+    super.initState();
+    location = widget.location;
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,12 +57,12 @@ class _TagBathroomPageState extends State<TagBathroomPage>{
                     labelText: "Bathroom Name"
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
+                  if (value == null || value.isEmpty || value.length < 5) {
                     return 'Please enter the bathroom name';
                   }
                 },
                 onChanged: (value){
-
+                  title = value;
                 },
               ),
               TextFormField(
@@ -47,7 +73,7 @@ class _TagBathroomPageState extends State<TagBathroomPage>{
                 ),
                 // The validator receives the text that the user has entered.
                 onChanged: (value){
-
+                  directions = value;
                 },
               ),
 
@@ -55,7 +81,9 @@ class _TagBathroomPageState extends State<TagBathroomPage>{
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: ElevatedButton(
                   onPressed: () {
-
+                    Bathroom bathroom = Bathroom(title:title, directions: directions, location:location);
+                    bathroomRepo.createBathroom(bathroom);
+                    Navigator.push(context, MaterialPageRoute(builder: (_)=> HomePage()));
                   },
                   child: const Text('Submit'),
                 ),
@@ -67,153 +95,5 @@ class _TagBathroomPageState extends State<TagBathroomPage>{
   }
 }
 
-
-
-
-class DropdownButtonCleanliness extends StatefulWidget {
-  const DropdownButtonCleanliness({super.key});
-
-  @override
-  State<DropdownButtonCleanliness> createState() => _DropdownButtonCleanlinessState();
-}
-class _DropdownButtonCleanlinessState extends State<DropdownButtonCleanliness> {
-  String dropdownValue = listCleanliness.first;
-  @override
-  Widget build(BuildContext context) {
-    return DropdownButton<String>(
-      value: dropdownValue,
-      icon: const Icon(Icons.arrow_downward),
-      elevation: 16,
-      style: const TextStyle(color: Colors.deepPurple),
-      underline: Container(
-        height: 2,
-        color: Colors.deepPurpleAccent,
-      ),
-      onChanged: (String? value) {
-        // This is called when the user selects an item.
-        setState(() {
-          dropdownValue = value!;
-        });
-      },
-      items: listCleanliness.map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-    );
-  }
-}
-
-
-
-
-class DropdownButtonTraffic extends StatefulWidget {
-  const DropdownButtonTraffic({super.key});
-  @override
-  State<DropdownButtonTraffic> createState() => _DropdownButtonTrafficState();
-}
-class _DropdownButtonTrafficState extends State<DropdownButtonTraffic> {
-  String dropdownValue = listTraffic.first;
-  @override
-  Widget build(BuildContext context) {
-    return DropdownButton<String>(
-      value: dropdownValue,
-      icon: const Icon(Icons.arrow_downward),
-      elevation: 16,
-      style: const TextStyle(color: Colors.deepPurple),
-      underline: Container(
-        height: 2,
-        color: Colors.deepPurpleAccent,
-      ),
-      onChanged: (String? value) {
-        // This is called when the user selects an item.
-        setState(() {
-          dropdownValue = value!;
-        });
-      },
-      items: listTraffic.map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-    );
-  }
-}
-
-
-
-
-class DropdownButtonSize extends StatefulWidget {
-  const DropdownButtonSize({super.key});
-  @override
-  State<DropdownButtonSize> createState() => _DropdownButtonSizeState();
-}
-class _DropdownButtonSizeState extends State<DropdownButtonSize> {
-  String dropdownValue = listSize.first;
-  @override
-  Widget build(BuildContext context) {
-    return DropdownButton<String>(
-      value: dropdownValue,
-      icon: const Icon(Icons.arrow_downward),
-      elevation: 16,
-      style: const TextStyle(color: Colors.deepPurple),
-      underline: Container(
-        height: 2,
-        color: Colors.deepPurpleAccent,
-      ),
-      onChanged: (String? value) {
-        // This is called when the user selects an item.
-        setState(() {
-          dropdownValue = value!;
-        });
-      },
-      items: listSize.map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-    );
-  }
-}
-
-
-
-
-class DropdownButtonAccessibility extends StatefulWidget {
-  const DropdownButtonAccessibility({super.key});
-  @override
-  State<DropdownButtonAccessibility> createState() => _DropdownButtonAccessibilityState();
-}
-class _DropdownButtonAccessibilityState extends State<DropdownButtonAccessibility> {
-  String dropdownValue = listAccessibility.first;
-  @override
-  Widget build(BuildContext context) {
-    return DropdownButton<String>(
-      value: dropdownValue,
-      icon: const Icon(Icons.arrow_downward),
-      elevation: 16,
-      style: const TextStyle(color: Colors.deepPurple),
-      underline: Container(
-        height: 2,
-        color: Colors.deepPurpleAccent,
-      ),
-      onChanged: (String? value) {
-        // This is called when the user selects an item.
-        setState(() {
-          dropdownValue = value!;
-        });
-      },
-      items: listAccessibility.map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-    );
-  }
-}
 
 
