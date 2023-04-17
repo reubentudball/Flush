@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'Review.dart';
+import 'model/Review.dart';
 
 
 class CommentPage extends StatefulWidget{

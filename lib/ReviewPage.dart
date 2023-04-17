@@ -1,7 +1,7 @@
 import 'package:flush/HomePage.dart';
 import 'package:flutter/material.dart';
 
-import 'Review.dart';
+import 'model/Review.dart';
 
 import 'package:flush/RestroomDetail.dart';
 
