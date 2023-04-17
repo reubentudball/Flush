@@ -12,13 +12,13 @@ const List<String> listTraffic = <String> ['High','Moderate','Low','None'];
 const List<String> listSize = <String> ['Single-Use','2-4','5-7','More than 7'];
 const List<String> listAccessibility = <String> ['Yes','No'];
 
-var cleanliness;
-var traffic;
-var size;
-var feedback;
+var cleanliness = "Very Clean";
+var traffic = "High";
+var size = "Singe-Use";
+var feedback = "";
 var accessibilty = true;
 
-var review = Review.create(cleanliness,traffic, size, feedback,accessibilty);
+Review review = Review.create(cleanliness,traffic, size, feedback,accessibilty);
 
 
 
