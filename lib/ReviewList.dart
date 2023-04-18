@@ -1,3 +1,4 @@
+import 'package:flush/ReviewPage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -56,31 +57,15 @@ class _ReviewListState extends State<ReviewList>{
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text(reviews[index].cleanliness)
+                    Text("Cleanliness: ${reviews[index].cleanliness}"),
+                    Text("Size: ${reviews[index].size}")
                   ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text(reviews[index].size)
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(reviews[index].traffic)
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(reviews[index].accessibility.toString())
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(reviews[index].cleanliness)
+                    Text("Traffic: ${reviews[index].traffic}"),
+                    Text("Accessible?: ${reviews[index].accessibility.toString()}")
                   ],
                 ),
               ]
