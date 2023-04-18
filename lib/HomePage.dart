@@ -73,7 +73,7 @@ class _HomePageState extends State<HomePage> {
           showDialog(context: context, builder: (BuildContext context){
             return AlertDialog(
               title: Text(bathroom.title),
-              content: Text(bathroom.directions),
+              content: Text("Directions: ${bathroom.directions}"),
               actions: [
                 ElevatedButton(onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) =>
@@ -182,7 +182,7 @@ class _HomePageState extends State<HomePage> {
             child: FloatingActionButton(
                 onPressed: () {
                   Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => SearchPage()));
+                      MaterialPageRoute(builder: (_) => SearchPage(currentPosition: _currentPosition!, bathrooms: _bathrooms,)));
                 },
                 backgroundColor: Colors.blue,
 
