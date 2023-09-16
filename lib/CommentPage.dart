@@ -1,64 +1,80 @@
 import 'package:flutter/material.dart';
-import 'model/Review.dart';
+import '../model/Bathroom.dart';
+import '../model/BathroomRepo.dart';
+import 'package:get/get.dart';
+
 
 
 class CommentPage extends StatefulWidget{
 
-  final Review reviews;
-  CommentPage({Key? key, required this.reviews }) : super(key:key);
+  final Bathroom bathroom;
+  const CommentPage({super.key, required this.bathroom });
 
   @override
-  _CommentPageState createState() => new _CommentPageState(reviews);
+  _CommentPageState createState() => _CommentPageState();
 }
 
 class _CommentPageState extends State<CommentPage> {
-  Review reviews;
-  _CommentPageState(this.reviews);
-  TextEditingController myController = TextEditingController();
 
-  @override
-  void dispose() {
-    myController.dispose();
-    super.dispose();
+  late Bathroom bathroom;
+  final bathroomRepo = Get.put(BathroomRepository());
+
+  String comment = "";
+
+
+  @override void initState() {
+    super.initState();
+    bathroom = widget.bathroom;
   }
+
+
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Leave a Comment"),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.all(15),
-          child:
-          TextField(
-            controller: myController,
-            maxLines: 6,
-            minLines: 1,
-            decoration:InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'Enter Comment Here',
+        appBar: AppBar(
+          title: const Text("Comments"),
+        ),
+        body: Column(
+            children: [ Expanded(child: ListView.builder(
+                itemCount: bathroom.comments!.length,
+                itemBuilder: (context, index){
+                  return Card(
+                      child: Row(
+                        children: [
 
-
+                          Padding(padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: Text(bathroom.comments![index]))
+                        ],
+                      )
+                  );
+                }),
             ),
-            )
-          ),
-          Padding(
-            padding: EdgeInsets.all(15),
-            child: ElevatedButton(
-                onPressed: () {
-                  reviews.feedback = myController.text;
+              TextFormField(
+                  decoration: const InputDecoration(
+                      icon: Icon(Icons.chat_outlined),
+                      hintText: "Leave a Comment",
+                      labelText: "Comment"
+                  ),
+                  onChanged: (value){
+                    comment = value;
+                  }
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: ElevatedButton(
+                    onPressed: (){
+                      bathroom.comments!.add(comment);
+                      bathroomRepo.updateBathroom(bathroom);
+                      setState((){});
 
-
-                },
-                child: Text('Save')),
-          )
-
-
-        ],
-      ),
+                    },
+                    child: const Text("Add Comment")
+                ),
+              )
+            ]
+        )
     );
   }
 }

@@ -1,27 +1,34 @@
+
 import 'dart:developer';
 
-import 'package:flush/RestroomDetail.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:get/get.dart';
-
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 
+
+
+
+
+import 'BathroomDetails.dart';
 import 'ReviewPage.dart';
-
-
 import 'SearchPage.dart';
 import 'TagBathroomPage.dart';
+
+import 'package:get/get.dart';
+
+
+
 import 'model/Bathroom.dart';
 import 'model/BathroomRepo.dart';
 
 
 
-
-
 class HomePage extends StatefulWidget {
+
+
+
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -29,28 +36,28 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late GoogleMapController mapController;
 
-  List<Marker> _tagMarkers = [];
-
-  final bathroomRepo = Get.put(BathroomRepository());
-
-  List<Bathroom> _bathrooms = [];
-
   Position? _currentPosition;
 
-  BitmapDescriptor customMarker = BitmapDescriptor.defaultMarker;
+  final bathroomRepo = Get.put(BathroomRepository());
+  List<Bathroom> _bathrooms = [];
 
+  final List<Marker> _tagMarkers = [];
+  var isTagging = false;
 
   Icon customIcon = const Icon(Icons.search);
-  Widget customSearchBar = const Text('Flush', textAlign: TextAlign.center);
+  BitmapDescriptor customMarker = BitmapDescriptor.defaultMarker;
+  Widget customSearchBar = const Text('Bathroom Map', textAlign: TextAlign.center);
 
 
   @override
   void initState() {
+
     super.initState();
-    addCustomIcon();
     _getCurrentPosition();
+    addCustomIcon();
     _getBathrooms();
   }
+
 
   void addCustomIcon() {
     BitmapDescriptor.fromAssetImage(
@@ -66,36 +73,40 @@ class _HomePageState extends State<HomePage> {
   void _getBathrooms() async {
     _bathrooms = await bathroomRepo.getAllBathrooms();
     for(Bathroom bathroom in _bathrooms){
+
       _tagMarkers.add(Marker(
-        markerId: MarkerId(bathroom.location.toString()),
-        position: bathroom.location,
-        onTap: (){
-          showDialog(context: context, builder: (BuildContext context){
-            return AlertDialog(
-              title: Text(bathroom.title),
-              content: Text("Directions: ${bathroom.directions}"),
-              actions: [
-                ElevatedButton(onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) =>
-                      RestroomDetail(bathroom: bathroom)));
-                },
-                    child: Text("See Details")),
-                ElevatedButton(onPressed: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (_)=>ReviewPage(bathroom: bathroom)));
-                }, child: Text("Review")),
-                TextButton(onPressed: (){Navigator.pop(context);}, child: Text("Close"))
-              ],
-            );
-          });
-        }
+          markerId: MarkerId(bathroom.location.toString()),
+          position: bathroom.location,
+          onTap: (){
+            showDialog(context: context, builder: (BuildContext context){
+              return AlertDialog(
+
+                title: Text(bathroom.title),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [Text("Directions: ${bathroom.directions}"),
+
+                  ],
+                ),
+                actions: [
+                  ElevatedButton(onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) =>
+                        BathroomDetails(bathroom: bathroom)));
+                  },
+                      child: const Text("See Details")),
+                  ElevatedButton(onPressed: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (_)=>ReviewPage(bathroom: bathroom)));
+                  }, child: const Text("Review")),
+                  TextButton(onPressed: (){Navigator.pop(context);}, child: const Text("Close"))
+                ],
+              );
+            });
+          }
       ));
     }
+
     Future.delayed(const Duration(seconds: 1)).then((value) => setState((){}));
   }
-
-
-
-
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
   }
@@ -143,6 +154,8 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+
+
   @override
   Widget build(BuildContext context) {
 
@@ -174,8 +187,7 @@ class _HomePageState extends State<HomePage> {
                 _currentPosition!.latitude, _currentPosition!.longitude),
             zoom: 15,
           ),
-          onTap: _handleTagTap,
-
+          onTap: _handleTap,
         ),
         floatingActionButton: Padding(
             padding: const EdgeInsets.only(right: 50),
@@ -193,27 +205,37 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  _handleTagTap(LatLng pos){
+  _handleTap(LatLng pos){
+    if (isTagging){
+      _tagMarkers.removeLast();
+    }
+
     setState(() {
       _tagMarkers.add(
-        Marker(markerId: MarkerId(pos.toString()),
-          position: pos,
-          icon: customMarker,
-          onTap: () {
-            showDialog(context: context, builder: (BuildContext context){
-              return AlertDialog(content: Text("Would you like to add a bathroom at this location?"),
-              actions: [
-                TextButton(onPressed: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => TagBathroomPage(location: pos)));
-                }, child: Text("Ok")),
-                TextButton(onPressed: (){
-                  Navigator.pop(context);
-                },child: Text("No Thanks"))
-              ]);
-            });
-          }
-        )
+          Marker(markerId: MarkerId(pos.toString()),
+              position: pos,
+              icon: customMarker,
+              onTap: () {
+                showDialog(context: context, builder: (BuildContext context){
+                  return AlertDialog(content: const Text("Would you like to add a bathroom at this location?"),
+                      actions: [
+                        TextButton(onPressed: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => TagBathroomPage(location: pos)));
+                        }, child: const Text("Ok")),
+                        TextButton(onPressed: (){
+                          Navigator.pop(context);
+                          setState(() {
+                            isTagging = false;
+                            _tagMarkers.removeLast();
+                          });
+                        },child: const Text("No Thanks"))
+
+                      ]);
+                });
+              }
+          )
       );
+      isTagging = true;
     });
   }
 }

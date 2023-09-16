@@ -1,4 +1,4 @@
-import 'package:flush/RestroomDetail.dart';
+import 'package:flush/BathroomDetails.dart';
 import 'package:flush/ReviewPage.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter/cupertino.dart';
@@ -111,7 +111,7 @@ class _SearchPageState extends State<SearchPage>{
                             ElevatedButton(style: ElevatedButton.styleFrom(
                             ), onPressed: () {
                               Navigator.push(context, MaterialPageRoute(builder: (_) =>
-                                  RestroomDetail(bathroom: bathrooms[index])
+                                  BathroomDetails(bathroom: bathrooms[index])
                               ));}, child: Text("See Details"))
                           ],
                         )

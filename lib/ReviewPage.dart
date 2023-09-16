@@ -1,15 +1,17 @@
-import 'package:flush/HomePage.dart';
-import 'package:flush/model/BathroomRepo.dart';
+import 'HomePage.dart';
+import '../model/BathroomRepo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'model/Bathroom.dart';
-import 'model/Review.dart';
+import 'BathroomDetails.dart';
+import '../model/Bathroom.dart';
 
-import 'package:flush/RestroomDetail.dart';
+import '../model/Review.dart';
+
+
 
 import 'CommentPage.dart';
-import 'constants.dart';
+import '../constants.dart';
 
 
 
@@ -97,7 +99,7 @@ class _ReviewPageState extends State<ReviewPage>{
                         onPrimary: Colors.white
                     ),
                     onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => RestroomDetail(bathroom: bathroom)));
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => BathroomDetails(bathroom: bathroom)));
                     },
                     child: const Text('Details', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 15,),
                     )
@@ -110,7 +112,7 @@ class _ReviewPageState extends State<ReviewPage>{
                         onPrimary: Colors.white
                     ),
                     onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => CommentPage(reviews: review)));
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => CommentPage(bathroom: bathroom,)));
                     },
                     child: const Text('Comment', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 15,),
                     )

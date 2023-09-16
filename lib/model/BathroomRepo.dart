@@ -46,5 +46,9 @@ class BathroomRepository extends GetxController{
 
   }
 
+  void updateBathroom(Bathroom bathroom){
+    _db.collection("Bathroom").doc(bathroom.id).update(bathroom.toJson());
+  }
+
 
 }
