@@ -59,6 +59,7 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+    namespace 'sheridan.tudballr.flush'
 }
 
 flutter {
