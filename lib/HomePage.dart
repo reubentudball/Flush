@@ -1,10 +1,10 @@
 
 import 'dart:developer';
 
+import 'package:flush/QrCodeScanner.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
 
 
 
@@ -210,7 +210,9 @@ class _HomePageState extends State<HomePage> {
               SizedBox(width: 30),
               ElevatedButton(
                 onPressed: () {
-
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => QrCodeScanner()),);
                 },
                 child: Text('Scan QR Code'),
                 style: ElevatedButton.styleFrom(shape: StadiumBorder()),
