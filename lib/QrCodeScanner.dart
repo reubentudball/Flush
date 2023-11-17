@@ -33,6 +33,22 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
             iconSize: 32.0,
             onPressed: () => cameraController.toggleTorch(),
           ),
+          IconButton(
+            color: Colors.white,
+            icon: ValueListenableBuilder(
+              valueListenable: cameraController.cameraFacingState,
+              builder: (context, state, child) {
+                switch (state as CameraFacing) {
+                  case CameraFacing.front:
+                    return const Icon(Icons.camera_front);
+                  case CameraFacing.back:
+                    return const Icon(Icons.camera_rear);
+                }
+              },
+            ),
+            iconSize: 32.0,
+            onPressed: () => cameraController.switchCamera(),
+          ),
         ],
       ),
       body: MobileScanner(onDetect: (BarcodeCapture barcodes) {  },
