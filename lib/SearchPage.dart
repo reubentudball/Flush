@@ -112,6 +112,7 @@ class _SearchPageState extends State<SearchPage>{
                             ), onPressed: () {
                               Navigator.push(context, MaterialPageRoute(builder: (_) =>
                                   BathroomDetails(bathroom: bathrooms[index])
+
                               ));}, child: Text("See Details"))
                           ],
                         )

@@ -212,7 +212,7 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => QrCodeScanner()),);
+                    MaterialPageRoute(builder: (_) => QrCodeScanner(currentPosition: _currentPosition!, bathrooms: _bathrooms)),);
                 },
                 child: Text('Scan QR Code'),
                 style: ElevatedButton.styleFrom(shape: StadiumBorder()),
