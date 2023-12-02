@@ -77,7 +77,13 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
         children: [
           Expanded(
             child: MobileScanner(
-              onDetect: (BarcodeCapture barcodes) {},
+              controller: cameraController,
+              onDetect: (capture) {
+                //final String info = barcodes.raw ?? "---";
+                Navigator.push(context, MaterialPageRoute(builder: (_) =>
+                    ReviewPage(bathroom: bathrooms[0])
+                ));
+              },
             ),
           ),
           Container(
@@ -87,7 +93,8 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) =>
                     ReviewPage(bathroom: bathrooms[0])
-                ));},
+                ));
+                },
 
               child: Text('Scan QR Code'),
               style: ElevatedButton.styleFrom(shape: StadiumBorder()),
@@ -96,5 +103,16 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
         ],
       ),
     );
+  }
+
+  void foundQrCode(Barcode barcode, MobileScannerArguments? args){
+    if(!_screenOpened) {
+      final Bathroom qrCode = (barcode.rawValue ?? "---") as Bathroom;
+      _screenOpened = true;
+      Navigator.push(context, MaterialPageRoute(builder: (_) =>
+          ReviewPage(bathroom: qrCode)
+      ));
+    }
+
   }
 }
