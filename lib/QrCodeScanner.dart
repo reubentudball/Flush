@@ -82,11 +82,11 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
             child: MobileScanner(
               controller: cameraController,
               onDetect: (capture) {
+                int index = 0;
                 if (!_screenOpened) {
                   final List<Barcode> qrCodeInfo = capture.barcodes;
                   Map<String, dynamic> decodedQrCode = json.decode(
                       qrCodeInfo[0].rawValue!);
-                  int index = 0;
                   for (Bathroom bathroom in bathrooms) {
                     if (bathroom.id == decodedQrCode['id']) {
                       break;
@@ -113,7 +113,7 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
                             Navigator.pop(context); // Close the dialog
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => ReviewPage(bathroom: bathrooms[0])),
+                              MaterialPageRoute(builder: (_) => ReviewPage(bathroom: bathrooms[index])),
                             );
                             _screenOpened = false;
                           },
