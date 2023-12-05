@@ -1,10 +1,10 @@
 
 import 'dart:developer';
 
+import 'package:flush/QrCodeScanner.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
 
 
 
@@ -155,22 +155,20 @@ class _HomePageState extends State<HomePage> {
   }
 
 
-
   @override
   Widget build(BuildContext context) {
 
     if (_currentPosition == null) {
       return Scaffold(
-          appBar: AppBar(
-            centerTitle: true,
-            title: customSearchBar,
-            elevation: 2,
-          ),
-          body: const Center(
+        appBar: AppBar(
+          centerTitle: true,
+          title: customSearchBar,
+          elevation: 2,
+        ),
+        body: const Center(
 
-              child: CircularProgressIndicator()
-          )
-
+          child: CircularProgressIndicator(),
+        ),
       );
     } else {
       return Scaffold(
@@ -184,27 +182,47 @@ class _HomePageState extends State<HomePage> {
           onMapCreated: _onMapCreated,
           initialCameraPosition: CameraPosition(
             target: LatLng(
-                _currentPosition!.latitude, _currentPosition!.longitude),
+              _currentPosition!.latitude,
+              _currentPosition!.longitude,
+            ),
             zoom: 15,
           ),
           onTap: _handleTap,
         ),
         floatingActionButton: Padding(
-            padding: const EdgeInsets.only(right: 50),
-            child: FloatingActionButton(
+          padding: const EdgeInsets.only(right: 50),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              FloatingActionButton(
                 onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => SearchPage(currentPosition: _currentPosition!, bathrooms: _bathrooms,)));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SearchPage(currentPosition: _currentPosition!, bathrooms: _bathrooms,
+                      ),
+                    ),
+                  );
                 },
                 backgroundColor: Colors.blue,
-
-                child: const Icon(Icons.search)
-            )
+                child: const Icon(Icons.search),
+              ),
+              SizedBox(width: 30),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => QrCodeScanner(currentPosition: _currentPosition!, bathrooms: _bathrooms)),);
+                },
+                child: Text('Scan QR Code'),
+                style: ElevatedButton.styleFrom(shape: StadiumBorder()),
+              ),
+            ],
+          ),
         ),
       );
     }
   }
-
   _handleTap(LatLng pos){
     if (isTagging){
       _tagMarkers.removeLast();
