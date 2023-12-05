@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -29,6 +30,8 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
   late double distance;
   final bathroomRepo = Get.put(BathroomRepository());
   late List<Bathroom> bathrooms;
+  bool _scannerActive = true;
+
 
   @override
   void initState() {
@@ -82,67 +85,59 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
             child: MobileScanner(
               controller: cameraController,
               onDetect: (capture) {
-                int index = 0;
-                if (!_screenOpened) {
-                  final List<Barcode> qrCodeInfo = capture.barcodes;
-                  Map<String, dynamic> decodedQrCode = json.decode(
-                      qrCodeInfo[0].rawValue!);
-                  for (Bathroom bathroom in bathrooms) {
-                    if (bathroom.id == decodedQrCode['id']) {
-                      break;
-                    }
-                    index = index + 1;
-                  }
+                if (_scannerActive) {
+                  _scannerActive = false;
+                  foundQrCode(capture);
+                  Timer(Duration(seconds: 2), () {
+                    _scannerActive = true;
+                  });
                 }
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('Qr Code Detected!'),
-                      content: Text('Would you like to review the bathroom?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context); // Close the dialog
-                            _screenOpened = false;
-                          },
-                          child: Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context); // Close the dialog
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => ReviewPage(bathroom: bathrooms[index])),
-                            );
-                            _screenOpened = false;
-                          },
-                          child: Text('Review'),
-                        ),
-                      ],
-                    );
-                  },
-                );
               },
             ),
           ),
-
         ],
       ),
     );
   }
 
-  void foundQrCode(capture, MobileScannerArguments? args){
+  void foundQrCode(capture) {
     final List<Barcode> qrCodeInfo = capture.barcodes;
     Map<String, dynamic> decodedQrCode = json.decode(qrCodeInfo[0].rawValue!);
     int index = 0;
-    for (Bathroom bathroom in bathrooms){
-      if(bathroom.id == decodedQrCode['id']){
+    for (Bathroom bathroom in bathrooms) {
+      if (bathroom.id == decodedQrCode['id']) {
         break;
       }
       index = index + 1;
     }
-    }
-
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Qr Code Detected!'),
+          content: Text('Would you like to review the bathroom?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _screenOpened = false;
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ReviewPage(bathroom: bathrooms[index])),
+                );
+                _screenOpened = false;
+              },
+              child: Text('Review'),
+            ),
+          ],
+        );
+      },
+    );
   }
-
+}
