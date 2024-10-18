@@ -180,6 +180,16 @@ class _HomePageState extends State<HomePage> {
           centerTitle: true,
           title: customSearchBar,
           elevation: 2,
+          leading: ElevatedButton(
+            onPressed: () {
+              FirebaseAuth.instance.signOut();
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => LoginPage(title: '',)),);
+            },
+            child: Text('Log Out'),
+            style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),backgroundColor: Colors.red),
+          ),
         ),
         body: GoogleMap(
           markers: Set.from(_tagMarkers),
@@ -221,16 +231,7 @@ class _HomePageState extends State<HomePage> {
                 child: Text('Scan QR Code'),
                 style: ElevatedButton.styleFrom(shape: StadiumBorder()),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  FirebaseAuth.instance.signOut();
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => LoginPage(title: '',)),);
-                },
-                child: Text('Log Out'),
-                style: ElevatedButton.styleFrom(shape: StadiumBorder()),
-              ),
+
             ],
           ),
         ),
