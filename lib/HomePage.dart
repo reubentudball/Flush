@@ -1,7 +1,9 @@
 
 import 'dart:developer';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flush/QrCodeScanner.dart';
+import 'package:flush/main.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -40,6 +42,8 @@ class _HomePageState extends State<HomePage> {
 
   final bathroomRepo = Get.put(BathroomRepository());
   List<Bathroom> _bathrooms = [];
+
+  final user = FirebaseAuth.instance.currentUser!;
 
   final List<Marker> _tagMarkers = [];
   var isTagging = false;
@@ -176,6 +180,16 @@ class _HomePageState extends State<HomePage> {
           centerTitle: true,
           title: customSearchBar,
           elevation: 2,
+          leading: ElevatedButton(
+            onPressed: () {
+              FirebaseAuth.instance.signOut();
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => LoginPage(title: '',)),);
+            },
+            child: Text('Log Out'),
+            style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),backgroundColor: Colors.red),
+          ),
         ),
         body: GoogleMap(
           markers: Set.from(_tagMarkers),
@@ -217,6 +231,7 @@ class _HomePageState extends State<HomePage> {
                 child: Text('Scan QR Code'),
                 style: ElevatedButton.styleFrom(shape: StadiumBorder()),
               ),
+
             ],
           ),
         ),
