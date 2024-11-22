@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:developer';
 
@@ -23,6 +23,14 @@ class ForgotPasswordPage extends StatefulWidget {
 }
 
 class _ForgotPasswordState extends State<ForgotPasswordPage> {
+  final _auth = FirebaseAuth.instance;
+  String email = "";
+
+  @override
+  Future<void> passwordReset(String email) async{
+    await _auth.sendPasswordResetEmail(email: email);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,7 +68,11 @@ class _ForgotPasswordState extends State<ForgotPasswordPage> {
                     border: OutlineInputBorder(),
                     labelText: 'Email',
                     hintText: 'Enter Valid Email'),
+                onChanged: (value){
+                  email = value;
+                },
               ),
+
             ),
             Container(
               height: 50,
@@ -69,6 +81,7 @@ class _ForgotPasswordState extends State<ForgotPasswordPage> {
                   color: Colors.blue, borderRadius: BorderRadius.circular(20)),
               child: TextButton(
                 onPressed: () {
+                  passwordReset(email);
                   Navigator.pop(context);
                 },
                 child: Text(
