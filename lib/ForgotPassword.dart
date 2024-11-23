@@ -82,7 +82,25 @@ class _ForgotPasswordState extends State<ForgotPasswordPage> {
               child: TextButton(
                 onPressed: () {
                   passwordReset(email);
-                  Navigator.pop(context);
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text("Email Sent!"),
+                        content: Text(
+                          "The reset password email has been sent to your inbox.",
+                        ),
+                        actions: [
+                          TextButton(
+                            child: Text("OK"),
+                            onPressed: () {
+                              Navigator.pop(context); // Close the dialog
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 },
                 child: Text(
                   'Send Email',

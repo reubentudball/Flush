@@ -161,7 +161,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-
     if (_currentPosition == null) {
       return Scaffold(
         appBar: AppBar(
@@ -170,7 +169,6 @@ class _HomePageState extends State<HomePage> {
           elevation: 2,
         ),
         body: const Center(
-
           child: CircularProgressIndicator(),
         ),
       );
@@ -180,28 +178,44 @@ class _HomePageState extends State<HomePage> {
           centerTitle: true,
           title: customSearchBar,
           elevation: 2,
-          leading: ElevatedButton(
-            onPressed: () {
-              FirebaseAuth.instance.signOut();
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => LoginPage(title: '',)),);
-            },
-            child: Text('Log Out'),
-            style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),backgroundColor: Colors.red),
-          ),
         ),
-        body: GoogleMap(
-          markers: Set.from(_tagMarkers),
-          onMapCreated: _onMapCreated,
-          initialCameraPosition: CameraPosition(
-            target: LatLng(
-              _currentPosition!.latitude,
-              _currentPosition!.longitude,
+        body: Stack(
+          children: [
+            GoogleMap(
+              markers: Set.from(_tagMarkers),
+              onMapCreated: _onMapCreated,
+              initialCameraPosition: CameraPosition(
+                target: LatLng(
+                  _currentPosition!.latitude,
+                  _currentPosition!.longitude,
+                ),
+                zoom: 15,
+              ),
+              onTap: _handleTap,
             ),
-            zoom: 15,
-          ),
-          onTap: _handleTap,
+            Positioned(
+              top: 10,
+              left: 10,
+              child: ElevatedButton(
+                onPressed: () {
+                  FirebaseAuth.instance.signOut();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => LoginPage(title: ''),
+                    ),
+                  );
+                },
+                child: Text('Log Out'),
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  backgroundColor: Colors.red,
+                ),
+              ),
+            ),
+          ],
         ),
         floatingActionButton: Padding(
           padding: const EdgeInsets.only(right: 50),
@@ -213,7 +227,9 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => SearchPage(currentPosition: _currentPosition!, bathrooms: _bathrooms,
+                      builder: (_) => SearchPage(
+                        currentPosition: _currentPosition!,
+                        bathrooms: _bathrooms,
                       ),
                     ),
                   );
@@ -226,12 +242,17 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => QrCodeScanner(currentPosition: _currentPosition!, bathrooms: _bathrooms)),);
+                    MaterialPageRoute(
+                      builder: (_) => QrCodeScanner(
+                        currentPosition: _currentPosition!,
+                        bathrooms: _bathrooms,
+                      ),
+                    ),
+                  );
                 },
                 child: Text('Scan QR Code'),
                 style: ElevatedButton.styleFrom(shape: StadiumBorder()),
               ),
-
             ],
           ),
         ),
