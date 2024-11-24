@@ -42,8 +42,17 @@ class BathroomRepository extends GetxController{
     final snapshot = await _db.collection("Bathroom").doc(bathroomId).collection("Reviews").get();
     final reviews = snapshot.docs.map((e) => Review.fromSnapshot(e)).toList();
     return reviews;
-
-
+  }
+  Future<List<String>> getBathroomComment(String bathroomId) async{
+    final snapshot = await _db.collection("Bathroom").doc(bathroomId).get();
+    if (snapshot.exists) {
+      // Access the comments field in the Bathroom document
+      final comments = snapshot.data()?['comments'] ?? [];
+      return comments.whereType<String>().toList();
+    } else {
+      // Return an empty list if the document doesn't exist
+      return [];
+    }
   }
 
   void updateBathroom(Bathroom bathroom){
