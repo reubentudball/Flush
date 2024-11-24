@@ -9,7 +9,7 @@ import 'ReviewList.dart';
 import 'model/Bathroom.dart';
 import 'model/BathroomRepo.dart';
 import 'model/Review.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 
 
@@ -64,31 +64,12 @@ class _BathroomDetailState extends State<BathroomDetails> {
     //cleanlinessWeight = 2.0;
     var cleanWeightValue = 0.75; //How much cleanliness is weighted
     var commentWeightValue = 0.25;
-    final bathroomDoc = await FirebaseFirestore.instance
-        .collection('Bathroom')
-        .doc(bathroom.id!)
-        .get();
-    if (!bathroomDoc.exists) {
-      print('Bathroom not found');
-      return;
-    }
+
     bathroomReviews = (await bathroomRepo.getReviewsFromBathroom(bathroom.id!));
     //bathroomComments = (await bathroomRepo.getBathroomComment(bathroom.id!));
     // Transform comments and analyze sentiment
-    List<dynamic> comments = bathroomDoc.data()?['comments'] ?? [];
-    int processedCount = 0;
 
-    for (var comment in comments) {
-      if (comment['processed'] == false) {
-        double sentimentScore = await sentimentAnalysis.analyzeSentiment(comment['reviewText']);
-        commentWeight += sentimentScore; // Sum sentiment scores
-        comment['processed'] = true; // Mark comment as processed
-        processedCount++;
-      }
-    }
-    if (processedCount > 0) {
-      commentWeight = (commentWeight / processedCount) * 100 * commentWeightValue;
-    }
+
     Future.delayed(const Duration(seconds: 1)).then((value) => setState(()
     async {
       for (int i = 0; i < bathroomReviews.length; i++) {
@@ -112,11 +93,6 @@ class _BathroomDetailState extends State<BathroomDetails> {
       commentWeight = (commentWeight / bathroomComments.length) * 100 * commentWeightValue;
       healthScore = cleanlinessWeight + commentWeight;
 
-      // Update Firestore with the updated comments and health score
-      await FirebaseFirestore.instance.collection('Bathrooms').doc(bathroom.id!).update({
-      'comments': comments,
-      'healthScore': healthScore,
-      });
 
       log("${healthScore}");
 
