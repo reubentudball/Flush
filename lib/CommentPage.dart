@@ -1,3 +1,4 @@
+import 'package:flush/model/Comment.dart';
 import 'package:flutter/material.dart';
 import '../model/Bathroom.dart';
 import '../model/BathroomRepo.dart';
@@ -19,7 +20,7 @@ class _CommentPageState extends State<CommentPage> {
   late Bathroom bathroom;
   final bathroomRepo = Get.put(BathroomRepository());
 
-  String comment = "";
+  late Comment comment;
 
 
   @override void initState() {
@@ -45,7 +46,7 @@ class _CommentPageState extends State<CommentPage> {
                         children: [
 
                           Padding(padding: const EdgeInsets.symmetric(vertical: 10),
-                              child: Text(bathroom.comments![index]))
+                              child: Text(bathroom.comments![index].reviewText))
                         ],
                       )
                   );
@@ -58,7 +59,7 @@ class _CommentPageState extends State<CommentPage> {
                       labelText: "Comment"
                   ),
                   onChanged: (value){
-                    comment = value;
+                    comment.reviewText = value;
                   }
               ),
               Padding(

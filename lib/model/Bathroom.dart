@@ -1,6 +1,7 @@
 
 import 'dart:developer';
 
+import 'package:flush/model/Comment.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'Review.dart';
@@ -12,7 +13,7 @@ class Bathroom{
   final String directions;
   final LatLng location;
   late CollectionReference? reviews;
-  late List<String>? comments = [];
+  late List<dynamic>? comments = [];
 
 
   Bathroom({this.id, required this.title, required this.directions, required this.location, this.reviews, this.comments});
@@ -36,7 +37,7 @@ class Bathroom{
       directions: data["directions"],
       location: LatLng(data["location"].latitude as double, data["location"].longitude as double),
       reviews: data["Reviews"],
-      comments: List<String>.from(data["comments"] as List)
+      comments: (data["comments"] as List<dynamic>).toList()
     );
   }
 

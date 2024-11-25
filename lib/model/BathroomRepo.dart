@@ -3,6 +3,7 @@
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flush/model/Comment.dart';
 import 'package:get/get.dart';
 
 import 'Bathroom.dart';
@@ -28,12 +29,17 @@ class BathroomRepository extends GetxController{
   Future<List<Bathroom>> getAllBathrooms() async {
     final snapshot = await _db.collection("Bathroom").get();
     try {
+
       final bathrooms = snapshot.docs.map((e) => Bathroom.fromSnapshot(e))
           .toList();
+
       return bathrooms;
+
     } catch(e){
+
       log("$e");
       throw e;
+
     }
 
   }
@@ -43,12 +49,12 @@ class BathroomRepository extends GetxController{
     final reviews = snapshot.docs.map((e) => Review.fromSnapshot(e)).toList();
     return reviews;
   }
-  Future<List<String>> getBathroomComment(String bathroomId) async{
+  Future<List<Comment>> getBathroomComment(String bathroomId) async{
     final snapshot = await _db.collection("Bathroom").doc(bathroomId).get();
     if (snapshot.exists) {
       // Access the comments field in the Bathroom document
       final comments = snapshot.data()?['comments'] ?? [];
-      return comments.whereType<String>().toList();
+      return comments.whereType<Comment>().toList();
     } else {
       // Return an empty list if the document doesn't exist
       return [];

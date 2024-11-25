@@ -45,10 +45,10 @@ packages:
     dependency: "direct main"
     description:
       name: cloud_firestore
-      sha256: f5431cf41ab5c5e9c64e03ac2af103e10be22bf89020f394130c04b81add0010
+      sha256: "1179ae4c69e2ea18179d844d70fc6ed2f082a2bbeb7fa62d35a2a24e2992bd4d"
       url: "https://pub.dev"
     source: hosted
-    version: "4.5.1"
+    version: "4.9.3"
   cloud_firestore_platform_interface:
     dependency: transitive
     description:
