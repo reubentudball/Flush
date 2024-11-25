@@ -1,19 +1,53 @@
-import 'package:flush/HomePage.dart';
+import 'HomePage.dart';
+import '../model/BathroomRepo.dart';
 import 'package:flutter/material.dart';
-import 'package:flush/RestroomDetail.dart';
+import 'package:get/get.dart';
+
+import 'BathroomDetails.dart';
+import '../model/Bathroom.dart';
+
+import '../model/Review.dart';
+
+
 
 import 'CommentPage.dart';
+import '../constants.dart';
 
-const List<String> listCleanliness = <String> ['Very Clean','Clean','Messy','Very Messy'];
-const List<String> listTraffic = <String> ['High','Moderate','Low','None'];
-const List<String> listSize = <String> ['Single-Use','2-4','5-7','More than 7'];
-const List<String> listAccessibility = <String> ['Yes','No'];
-class RestroomPage extends StatefulWidget{
+
+
+var cleanliness = "Very Clean";
+var traffic = "High";
+var size = "Singe-Use";
+var feedback = "";
+var accessibilty = true;
+
+Review review = Review(cleanliness: cleanliness,traffic: traffic, size: size, feedback:feedback,accessibility: accessibilty);
+
+
+class ReviewPage extends StatefulWidget{
+
+  final Bathroom bathroom;
+
+  ReviewPage({super.key, required this.bathroom});
+
+
   @override
-    _RestroomPageState createState() => _RestroomPageState();
+  _ReviewPageState createState() => _ReviewPageState();
 
 }
-class _RestroomPageState extends State<RestroomPage>{
+class _ReviewPageState extends State<ReviewPage>{
+
+
+  final bathroomRepo = Get.put(BathroomRepository());
+  late Bathroom bathroom;
+
+  @override
+  void initState(){
+    super.initState();
+    bathroom = widget.bathroom;
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,17 +93,17 @@ class _RestroomPageState extends State<RestroomPage>{
               ),
               ),
               Padding(padding: const EdgeInsets.fromLTRB(45, 50, 5, 5),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  primary: Colors.black,
-                  onPrimary: Colors.white
-                ),
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => RestroomDetail()));
+                child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        primary: Colors.black,
+                        onPrimary: Colors.white
+                    ),
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => BathroomDetails(bathroom: bathroom)));
                     },
-                  child: const Text('Details', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 15,),
-                  )
-              ),
+                    child: const Text('Details', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 15,),
+                    )
+                ),
               ),
               Padding(padding: const EdgeInsets.fromLTRB(45, 5, 5, 25),
                 child: ElevatedButton(
@@ -78,7 +112,7 @@ class _RestroomPageState extends State<RestroomPage>{
                         onPrimary: Colors.white
                     ),
                     onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => CommentPage()));
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => CommentPage(bathroom: bathroom,)));
                     },
                     child: const Text('Comment', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 15,),
                     )
@@ -111,7 +145,10 @@ class _RestroomPageState extends State<RestroomPage>{
               ),
               Padding(padding: EdgeInsets.fromLTRB(45, 35, 5, 25),
                 child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      bathroomRepo.createReview(bathroom.id!, review);
+                      Navigator.push(context, MaterialPageRoute(builder: (_)=>HomePage()));
+                    },
                     child: Text('Save', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20,),
                     )
                 ),
@@ -119,13 +156,11 @@ class _RestroomPageState extends State<RestroomPage>{
             ],
           ),
         ],
-        ),
+      ),
 
     );
   }
 }
-
-
 
 
 class DropdownButtonCleanliness extends StatefulWidget {
@@ -135,7 +170,7 @@ class DropdownButtonCleanliness extends StatefulWidget {
   State<DropdownButtonCleanliness> createState() => _DropdownButtonCleanlinessState();
 }
 class _DropdownButtonCleanlinessState extends State<DropdownButtonCleanliness> {
-  String dropdownValue = listCleanliness.first;
+  String dropdownValue = Constants.listCleanliness.first;
   @override
   Widget build(BuildContext context) {
     return DropdownButton<String>(
@@ -148,12 +183,17 @@ class _DropdownButtonCleanlinessState extends State<DropdownButtonCleanliness> {
         color: Colors.deepPurpleAccent,
       ),
       onChanged: (String? value) {
+
+
         // This is called when the user selects an item.
         setState(() {
           dropdownValue = value!;
+          cleanliness = dropdownValue;
+          review.cleanliness = cleanliness;
+
         });
       },
-      items: listCleanliness.map<DropdownMenuItem<String>>((String value) {
+      items: Constants.listCleanliness.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(value),
@@ -172,7 +212,7 @@ class DropdownButtonTraffic extends StatefulWidget {
   State<DropdownButtonTraffic> createState() => _DropdownButtonTrafficState();
 }
 class _DropdownButtonTrafficState extends State<DropdownButtonTraffic> {
-  String dropdownValue = listTraffic.first;
+  String dropdownValue = Constants.listTraffic.first;
   @override
   Widget build(BuildContext context) {
     return DropdownButton<String>(
@@ -185,12 +225,16 @@ class _DropdownButtonTrafficState extends State<DropdownButtonTraffic> {
         color: Colors.deepPurpleAccent,
       ),
       onChanged: (String? value) {
+
+
         // This is called when the user selects an item.
         setState(() {
           dropdownValue = value!;
+          traffic = dropdownValue;
+
         });
       },
-      items: listTraffic.map<DropdownMenuItem<String>>((String value) {
+      items: Constants.listTraffic.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(value),
@@ -209,7 +253,7 @@ class DropdownButtonSize extends StatefulWidget {
   State<DropdownButtonSize> createState() => _DropdownButtonSizeState();
 }
 class _DropdownButtonSizeState extends State<DropdownButtonSize> {
-  String dropdownValue = listSize.first;
+  String dropdownValue = Constants.listSize.first;
   @override
   Widget build(BuildContext context) {
     return DropdownButton<String>(
@@ -222,12 +266,17 @@ class _DropdownButtonSizeState extends State<DropdownButtonSize> {
         color: Colors.deepPurpleAccent,
       ),
       onChanged: (String? value) {
+
+
         // This is called when the user selects an item.
         setState(() {
           dropdownValue = value!;
+          size = dropdownValue;
+          review.size = size;
+
         });
       },
-      items: listSize.map<DropdownMenuItem<String>>((String value) {
+      items: Constants.listSize.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(value),
@@ -246,7 +295,7 @@ class DropdownButtonAccessibility extends StatefulWidget {
   State<DropdownButtonAccessibility> createState() => _DropdownButtonAccessibilityState();
 }
 class _DropdownButtonAccessibilityState extends State<DropdownButtonAccessibility> {
-  String dropdownValue = listAccessibility.first;
+  String dropdownValue = Constants.listAccessibility.first;
   @override
   Widget build(BuildContext context) {
     return DropdownButton<String>(
@@ -259,12 +308,21 @@ class _DropdownButtonAccessibilityState extends State<DropdownButtonAccessibilit
         color: Colors.deepPurpleAccent,
       ),
       onChanged: (String? value) {
+
+
         // This is called when the user selects an item.
         setState(() {
           dropdownValue = value!;
+          if (dropdownValue == "Yes"){
+            accessibilty = true;
+          }else if (dropdownValue == "No"){
+            accessibilty = false;
+          }
+          review.accessibility = accessibilty;
+
         });
       },
-      items: listAccessibility.map<DropdownMenuItem<String>>((String value) {
+      items: Constants.listAccessibility.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(value),
@@ -273,5 +331,13 @@ class _DropdownButtonAccessibilityState extends State<DropdownButtonAccessibilit
     );
   }
 }
+
+
+
+
+
+
+
+
 
 
