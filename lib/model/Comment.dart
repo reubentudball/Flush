@@ -12,25 +12,22 @@ class Comment{
 
 
 
-  toJson(){
-    return {"processed": processed, "reviewText":reviewText, "sentimentScore": sentimentScore};
-  }
 
-  factory Comment.fromSnapshot(DocumentSnapshot<Map<String,dynamic>> document){
-
-    final data = document.data()!;
-
-
-
-
-
+  Map<String, dynamic> toMap() {
+    return {
+      "reviewText": reviewText,
+      "processed": processed,
+      "sentimentScore": sentimentScore,
+    };
+    }
+  factory Comment.fromJson(Map<String, dynamic> json) {
     return Comment(
-        processed: data["processed"],
-        reviewText: data["reviewText"],
-        sentimentScore: data["sentimentScore"]
-
+      reviewText: json['reviewText'] ?? '',  // Default value if null
+      processed: json['processed'] ?? false, // Default value if null
+      sentimentScore: (json['sentimentScore'] ?? 0).toDouble(), // Default value if null
     );
   }
+
 
 
 }

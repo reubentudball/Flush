@@ -16,7 +16,7 @@ class BathroomRepository extends GetxController{
   final _db = FirebaseFirestore.instance;
 
   createBathroom(Bathroom bathroom){
-    bathroom.comments = [];
+    //bathroom.comments = [];
     _db.collection("Bathroom").add(bathroom.toJson()).whenComplete(() => log("successful add"));
   }
 

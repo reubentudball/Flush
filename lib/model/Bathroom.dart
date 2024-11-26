@@ -19,17 +19,15 @@ class Bathroom{
   Bathroom({this.id, required this.title, required this.directions, required this.location, this.reviews, this.comments});
 
   toJson(){
-    return{"title":title, "directions":directions, "location":GeoPoint(location.latitude,location.longitude), "reviews": reviews, "comments":comments};
+    return{"title":title, "directions":directions, "location":GeoPoint(location.latitude,location.longitude),
+      "reviews": reviews, "comments":comments?.map((comment) => comment.toMap()).toList() ?? [],
+    };
   }
 
 
   factory Bathroom.fromSnapshot(DocumentSnapshot<Map<String,dynamic>> document){
 
     final data = document.data()!;
-
-
-
-
 
     return Bathroom(
       id:document.id,
