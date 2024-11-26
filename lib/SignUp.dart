@@ -1,8 +1,9 @@
-import 'dart:developer';
+import 'dart:async';
+import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flush/ForgotPassword.dart';
-import 'package:flush/SignUp.dart';
 import 'package:flush/model/BathroomRepo.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -13,47 +14,20 @@ import 'firebase_options.dart';
 import 'HomePage.dart';
 import 'model/Bathroom.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    BathroomRepository bathroomRepository = Get.put(BathroomRepository());
+  _SignUpPageState createState() => _SignUpPageState();
 
-
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flush',
-      theme: ThemeData(
-
-        primarySwatch: Colors.blue,
-      ),
-      home: LoginPage(title: 'Flush'),
-    );
-  }
 }
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key, required this.title});
-  final String title;
-
-  @override
-  State<LoginPage> createState() => _LoginPageState();
-}
-
-class _LoginPageState extends State<LoginPage> {
-String email = "";
-String password = "";
-String errorMessage = "";
-final _auth = FirebaseAuth.instance;
-
+class _SignUpPageState extends State<SignUpPage> {
+  final _auth = FirebaseAuth.instance;
+  String email = "";
+  String password = "";
+  String confirmPassword = "";
+  String errorMessage = "";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,8 +51,15 @@ final _auth = FirebaseAuth.instance;
               ),
             ),
             Padding(
-              //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-              padding: EdgeInsets.symmetric(horizontal: 15),
+              padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 15),
+              //padding: EdgeInsets.symmetric(horizontal: 15),
+              child: Text(
+                  "Enter an Email and Password down below"
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 10),
+              //padding: EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
                 decoration: InputDecoration(
                     border: OutlineInputBorder(),
@@ -94,7 +75,6 @@ final _auth = FirebaseAuth.instance;
                   left: 15.0, right: 15.0, top: 15, bottom: 0),
               //padding: EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
-
                 obscureText: true,
                 decoration: InputDecoration(
                     border: OutlineInputBorder(),
@@ -102,6 +82,21 @@ final _auth = FirebaseAuth.instance;
                     hintText: 'Enter secure password'),
                 onChanged: (value){
                   password = value;
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                  left: 15.0, right: 15.0, top: 15, bottom: 15),
+              //padding: EdgeInsets.symmetric(horizontal: 15),
+              child: TextField(
+                obscureText: true,
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Confirm Password',
+                    hintText: 'Enter password again'),
+                onChanged: (value) {
+                  confirmPassword = value;
                 },
               ),
             ),
@@ -113,16 +108,6 @@ final _auth = FirebaseAuth.instance;
                   style: TextStyle(color: Colors.red),
                 ),
               ),
-            TextButton(
-              onPressed: (){
-                Navigator.push(
-                    context, MaterialPageRoute(builder: (_) => ForgotPasswordPage()));
-              },
-              child: Text(
-                'Forgot Password',
-                style: TextStyle(color: Colors.blue, fontSize: 15),
-              ),
-            ),
             Container(
               height: 50,
               width: 250,
@@ -130,23 +115,26 @@ final _auth = FirebaseAuth.instance;
                   color: Colors.blue, borderRadius: BorderRadius.circular(20)),
               child: TextButton(
                 onPressed: () async {
-                  try {
-                    final user = await _auth.signInWithEmailAndPassword(
-                        email: email, password: password);
-                    if (user != null) {
-                      FirebaseAuth.instance.authStateChanges();
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => HomePage()),);
-                    }
-                  } catch (e){
+                  if (password != confirmPassword) {
                     setState(() {
-                      errorMessage = "Incorrect Username and Password, Please Try Again";
+                      errorMessage = "Passwords do not match! Please try again.";
                     });
+                  } else {
+                    try {
+                      final newUser = await _auth.createUserWithEmailAndPassword(
+                          email: email, password: password);
+                      if (newUser != null) {
+                        Navigator.pop(context);
+                      }
+                    } catch (e) {
+                      setState(() {
+                        errorMessage = "Fields empty, or password is not 6 characters long. Please try again.";
+                      });
+                    }
                   }
                 },
                 child: Text(
-                  'Login',
+                  'Sign Up',
                   style: TextStyle(color: Colors.white, fontSize: 25),
                 ),
               ),
@@ -154,13 +142,6 @@ final _auth = FirebaseAuth.instance;
             SizedBox(
               height: 130,
             ),
-            TextButton(
-              onPressed: (){
-                Navigator.push(
-                    context, MaterialPageRoute(builder: (_) => SignUpPage()));
-              },
-              child: Text('New User? Create Account'),
-            )
           ],
         ),
       ),

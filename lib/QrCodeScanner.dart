@@ -101,43 +101,70 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
   }
 
   void foundQrCode(capture) {
+    try{
     final List<Barcode> qrCodeInfo = capture.barcodes;
     Map<String, dynamic> decodedQrCode = json.decode(qrCodeInfo[0].rawValue!);
+
+    if (!decodedQrCode.containsKey('id')) {
+      throw Exception("Invalid QR code.");
+    }
+
     int index = 0;
     for (Bathroom bathroom in bathrooms) {
       if (bathroom.id == decodedQrCode['id']) {
-        break;
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Qr Code Detected!'),
+              content: Text('Would you like to review the bathroom?'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _screenOpened = false; // Reset screen state
+                  },
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ReviewPage(bathroom: bathrooms[index]),
+                      ),
+                    );
+                    _screenOpened = false; // Reset screen state
+                  },
+                  child: Text('Review'),
+                ),
+              ],
+            );
+          },
+        );
+        return;
       }
       index = index + 1;
     }
+  } catch (e) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Qr Code Detected!'),
-          content: Text('Would you like to review the bathroom?'),
+          title: Text("Invalid QR Code"),
+          content: Text("The QR code scanned is invalid. Please try again."),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
-                _screenOpened = false;
+                Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => ReviewPage(bathroom: bathrooms[index])),
-                );
-                _screenOpened = false;
-              },
-              child: Text('Review'),
+              child: Text("OK"),
             ),
           ],
         );
-      },
-    );
+       },
+     );
+    }
   }
 }
