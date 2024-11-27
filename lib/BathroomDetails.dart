@@ -1,5 +1,9 @@
 import 'dart:developer';
+import 'dart:ffi';
+//import 'dart:html';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'NaturalLanguageService.dart';
 import 'CommentPage.dart';
 import 'HomePage.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +12,8 @@ import 'ReviewList.dart';
 import 'model/Bathroom.dart';
 import 'model/BathroomRepo.dart';
 import 'model/Review.dart';
-
+import 'model/Comment.dart';
+import 'Services.dart';
 
 
 
@@ -25,22 +30,34 @@ class BathroomDetails extends StatefulWidget{
 class _BathroomDetailState extends State<BathroomDetails> {
 
   late Bathroom bathroom;
+  final NaturalLanguageService sentimentAnalysis = NaturalLanguageService();
   List<Review> bathroomReviews = [];
+  List<Comment> bathroomComments = [];
   List<String> cleanQual = [];
   List<String> trafficQual = [];
   List<String> sizeQual = [];
   List<String> accessQual = [];
+  List<String> commentQual = [];
   final bathroomRepo = Get.put(BathroomRepository());
+  var cleanlinessWeight = 0.0;
+  var commentWeight = 0.0;
+  var healthScore = 0.0;
+
 
   @override
   void initState(){
     super.initState();
     bathroom = widget.bathroom;
+
     getReviews();
+    getHealthScore();
+    log("bathroom ID: ${bathroom.id!}");
+    log("bathroom Comments: ${bathroom.comments!}");
   }
 
   void getReviews() async {
     bathroomReviews = (await bathroomRepo.getReviewsFromBathroom(bathroom.id!));
+
     Future.delayed(const Duration(seconds: 1)).then((value) => setState((){
       for(int i = 0; i < bathroomReviews.length; i++){
         cleanQual.add(bathroomReviews[i].cleanliness);
@@ -49,6 +66,61 @@ class _BathroomDetailState extends State<BathroomDetails> {
         accessQual.add(bathroomReviews[i].accessibility.toString());
       }
     }));
+  }
+  void getHealthScore() async{
+    //cleanlinessWeight = 2.0;
+    var cleanWeightValue = 0.75; //How much cleanliness is weighted
+    var commentWeightValue = 0.25;
+
+    bathroomReviews = (await bathroomRepo.getReviewsFromBathroom(bathroom.id!));
+    bathroomComments = await fetchComments(bathroom.id!);
+    log('Does this work: ${bathroomComments.length}');
+    // Transform comments and analyze sentiment
+    for (int i = 0; i < bathroomReviews.length; i++) {
+      cleanQual.add(bathroomReviews[i].cleanliness);
+      if (cleanQual[i] == 'Very Clean') {
+        cleanlinessWeight += 4.0;
+      } else if (cleanQual[i] == 'Clean') {
+        cleanlinessWeight += 3.0;
+      } else if (cleanQual[i] == 'Messy') {
+        cleanlinessWeight += 2.0;
+      } else if (cleanQual[i] == 'Very Messy') {
+        cleanlinessWeight += 1.0;
+      }
+    }
+    int processedCount = 0;
+    for (var comment in bathroomComments) {
+      if (comment.processed == false) {
+        double sentimentScore = await sentimentAnalysis.analyzeSentiment(comment.reviewText);
+        commentWeight += sentimentScore; // Sum sentiment scores
+        comment.processed = true; // Mark comment as processed
+        processedCount++;
+        log('Sentiment: $sentimentScore');
+        log('Count: $processedCount');
+      }
+    }
+      //If comment has not been analyzed then preform sentiment analysis on it
+      cleanlinessWeight =
+          (((cleanlinessWeight / bathroomReviews.length) / 4.0) * 100) *
+              cleanWeightValue; //Turn to percentage (4 is 100%) and apply weighted value
+
+      //if any sentment analysis was preformed during a calc then recalculate the weighted score
+      if(processedCount > 0){
+        commentWeight = (commentWeight / processedCount) * 100 * commentWeightValue;
+      }
+
+      healthScore = cleanlinessWeight + commentWeight;
+ // Update Firestore with the updated comments and health score
+       await FirebaseFirestore.instance.collection('Bathroom').doc(bathroom.id!).update({
+         'comments': bathroomComments,
+         'healthScore': healthScore,
+       });
+    log("${healthScore}");
+
+
+
+
+
   }
 
   String findCommonQuality(List<String> qualList){
@@ -134,6 +206,8 @@ class _BathroomDetailState extends State<BathroomDetails> {
                             )
                         ),
                         ),
+
+
 
 
                       ],
