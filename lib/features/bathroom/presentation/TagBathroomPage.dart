@@ -1,13 +1,11 @@
-import 'package:flush/HomePage.dart';
-import 'package:flush/model/BathroomRepo.dart';
+import 'package:flush/features/bathroom/presentation/HomePage.dart';
+import '../data/repository/BathroomRepo.dart';
 import 'package:flutter/material.dart';
-import 'package:flush/BathroomDetails.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 
-import 'CommentPage.dart';
-import 'model/Bathroom.dart';
+import '../data/models/Bathroom.dart';
 
 const List<String> listCleanliness = <String> ['Very Clean','Clean','Messy','Very Messy'];
 const List<String> listTraffic = <String> ['High','Moderate','Low','None'];
@@ -17,7 +15,7 @@ class TagBathroomPage extends StatefulWidget{
 
   final LatLng location;
 
-  TagBathroomPage({super.key, required this.location});
+  const TagBathroomPage({super.key, required this.location});
 
   @override
   _TagBathroomPageState createState() => _TagBathroomPageState();
@@ -45,7 +43,7 @@ class _TagBathroomPageState extends State<TagBathroomPage>{
     return Scaffold(
         appBar: AppBar(
 
-          title: Text("Add Bathroom"),
+          title: const Text("Add Bathroom"),
         ),
         body: Form(
           child: Column(
@@ -60,6 +58,7 @@ class _TagBathroomPageState extends State<TagBathroomPage>{
                   if (value == null || value.isEmpty || value.length < 5) {
                     return 'Please enter the bathroom name';
                   }
+                  return null;
                 },
                 onChanged: (value){
                   title = value;
@@ -83,7 +82,7 @@ class _TagBathroomPageState extends State<TagBathroomPage>{
                   onPressed: () {
                     Bathroom bathroom = Bathroom(title:title, directions: directions, location:location);
                     bathroomRepo.createBathroom(bathroom);
-                    Navigator.push(context, MaterialPageRoute(builder: (_)=> HomePage()));
+                    Navigator.push(context, MaterialPageRoute(builder: (_)=> const HomePage()));
                   },
                   child: const Text('Submit'),
                 ),

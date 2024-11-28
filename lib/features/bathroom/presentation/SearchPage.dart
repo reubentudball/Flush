@@ -1,14 +1,11 @@
-import 'package:flush/BathroomDetails.dart';
-import 'package:flush/ReviewPage.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flush/features/bathroom/presentation/BathroomDetails.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
 
-import 'model/Bathroom.dart';
-import 'model/BathroomRepo.dart';
+import '../data/models/Bathroom.dart';
+import '../data/repository/BathroomRepo.dart';
 
 const List<String> sortBy = <String>['Nearest', 'Most Clean', 'Most Quiet', 'Most Accessible'];
 
@@ -18,7 +15,7 @@ class SearchPage extends StatefulWidget{
   final Position currentPosition;
   final List<Bathroom> bathrooms;
 
-  SearchPage({super.key, required this.currentPosition, required this.bathrooms});
+  const SearchPage({super.key, required this.currentPosition, required this.bathrooms});
 
 
   @override
@@ -52,8 +49,8 @@ class _SearchPageState extends State<SearchPage>{
       ),
       body: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        children: [Row(
-          children: const <Widget>[
+        children: [const Row(
+          children: <Widget>[
             Expanded(
               child: Padding(
               padding: EdgeInsets.only(left: 20),
@@ -113,7 +110,7 @@ class _SearchPageState extends State<SearchPage>{
                               Navigator.push(context, MaterialPageRoute(builder: (_) =>
                                   BathroomDetails(bathroom: bathrooms[index])
 
-                              ));}, child: Text("See Details"))
+                              ));}, child: const Text("See Details"))
                           ],
                         )
                   ]

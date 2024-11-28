@@ -1,15 +1,14 @@
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'model/BathroomRepo.dart';
-import 'model/Review.dart';
+import '../data/repository/BathroomRepo.dart';
+import '../data/models/Review.dart';
 
 
 class ReviewList extends StatefulWidget{
   final String bathroomId;
 
-  ReviewList({super.key, required this.bathroomId});
+  const ReviewList({super.key, required this.bathroomId});
 
   @override
   State<ReviewList> createState() => _ReviewListState();
@@ -36,17 +35,17 @@ class _ReviewListState extends State<ReviewList>{
 
   @override
   Widget build(BuildContext context){
-    if(reviews.isEmpty || reviews == null){
+    if(reviews.isEmpty){
       return Scaffold(
         appBar: AppBar(
-          title: Text("Reviews"),
+          title: const Text("Reviews"),
         ),
         body: const Center(child: CircularProgressIndicator(),)
       );
     } else {
       return Scaffold(
         appBar: AppBar(
-          title: Text("Reviews"),
+          title: const Text("Reviews"),
         ),
         body: ListView.builder(itemCount: reviews.length,
         itemBuilder: (context, index){

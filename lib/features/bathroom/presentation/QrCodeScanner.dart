@@ -1,15 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import 'BathroomDetails.dart';
-import 'ReviewPage.dart';
-import 'model/Bathroom.dart';
-import 'model/BathroomRepo.dart';
+import './ReviewPage.dart';
+import '../data/models/Bathroom.dart';
+import '../data/repository/BathroomRepo.dart';
 import 'package:get/get.dart';
 
 class QrCodeScanner extends StatefulWidget {
@@ -17,7 +15,7 @@ class QrCodeScanner extends StatefulWidget {
   final Position currentPosition;
   final List<Bathroom> bathrooms;
 
-  QrCodeScanner({super.key, required this.currentPosition, required this.bathrooms});
+  const QrCodeScanner({super.key, required this.currentPosition, required this.bathrooms});
 
   @override
   _QrCodeScannerState createState() => _QrCodeScannerState();
@@ -43,14 +41,14 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Qr Code Scanner'),
+        title: const Text('Qr Code Scanner'),
         actions: [
           IconButton(
             color: Colors.white,
             icon: ValueListenableBuilder(
               valueListenable: cameraController.torchState,
               builder: (context, state, child) {
-                switch (state as TorchState) {
+                switch (state) {
                   case TorchState.off:
                     return const Icon(Icons.flashlight_off, color: Colors.grey);
                   case TorchState.on:
@@ -66,7 +64,7 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
             icon: ValueListenableBuilder(
               valueListenable: cameraController.cameraFacingState,
               builder: (context, state, child) {
-                switch (state as CameraFacing) {
+                switch (state) {
                   case CameraFacing.front:
                     return const Icon(Icons.camera_front);
                   case CameraFacing.back:
@@ -88,7 +86,7 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
                 if (_scannerActive) {
                   _scannerActive = false;
                   foundQrCode(capture);
-                  Timer(Duration(seconds: 2), () {
+                  Timer(const Duration(seconds: 2), () {
                     _scannerActive = true;
                   });
                 }
@@ -116,15 +114,15 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Qr Code Detected!'),
-              content: Text('Would you like to review the bathroom?'),
+              title: const Text('Qr Code Detected!'),
+              content: const Text('Would you like to review the bathroom?'),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.pop(context);
                     _screenOpened = false; // Reset screen state
                   },
-                  child: Text('Cancel'),
+                  child: const Text('Cancel'),
                 ),
                 TextButton(
                   onPressed: () {
@@ -137,7 +135,7 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
                     );
                     _screenOpened = false; // Reset screen state
                   },
-                  child: Text('Review'),
+                  child: const Text('Review'),
                 ),
               ],
             );
@@ -152,14 +150,14 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Invalid QR Code"),
-          content: Text("The QR code scanned is invalid. Please try again."),
+          title: const Text("Invalid QR Code"),
+          content: const Text("The QR code scanned is invalid. Please try again."),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text("OK"),
+              child: const Text("OK"),
             ),
           ],
         );

@@ -1,19 +1,18 @@
 import 'dart:developer';
-import 'dart:ffi';
 //import 'dart:html';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'NaturalLanguageService.dart';
+import '../../../core/services/NaturalLanguageService.dart';
 import 'CommentPage.dart';
 import 'HomePage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'ReviewList.dart';
-import 'model/Bathroom.dart';
-import 'model/BathroomRepo.dart';
-import 'model/Review.dart';
-import 'model/Comment.dart';
-import 'Services.dart';
+import './ReviewList.dart';
+import '../data/models/Bathroom.dart';
+import '../data/repository/BathroomRepo.dart';
+import '../data/models/Review.dart';
+import '../data/models/Comment.dart';
+import '../../../core/services/Services.dart';
 
 
 
@@ -21,7 +20,7 @@ class BathroomDetails extends StatefulWidget{
 
   final Bathroom bathroom;
 
-  BathroomDetails({super.key, required this.bathroom});
+  const BathroomDetails({super.key, required this.bathroom});
 
   @override
   _BathroomDetailState createState() => _BathroomDetailState();
@@ -115,7 +114,7 @@ class _BathroomDetailState extends State<BathroomDetails> {
          'comments': bathroomComments,
          'healthScore': healthScore,
        });
-    log("${healthScore}");
+    log("$healthScore");
 
 
 
@@ -125,17 +124,17 @@ class _BathroomDetailState extends State<BathroomDetails> {
 
   String findCommonQuality(List<String> qualList){
 
-    var commonQual = Map();
+    var commonQual = {};
 
 
 
-    qualList.forEach((str){
+    for (var str in qualList) {
       if(!commonQual.containsKey(str)){
         commonQual[str] = 1;
       } else {
         commonQual[str] +=1;
       }
-    });
+    }
     log("${commonQual.keys.toList()}");
 
     return commonQual.keys.first;
@@ -169,10 +168,10 @@ class _BathroomDetailState extends State<BathroomDetails> {
               children: [
                 Row(
                   children: [
-                    Column(
+                    const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
+                      children: [
                         Flexible(child:
                         Padding(padding: EdgeInsets.all(25),
                             child: Text('Cleanliness', style: TextStyle(
@@ -267,12 +266,11 @@ class _BathroomDetailState extends State<BathroomDetails> {
                   children: [
                     ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                            primary: Colors.black,
-                            onPrimary: Colors.white
+                            foregroundColor: Colors.white, backgroundColor: Colors.black
                         ),
                         onPressed: () {
                           Navigator.push(context,
-                              MaterialPageRoute(builder: (_) => HomePage()));
+                              MaterialPageRoute(builder: (_) => const HomePage()));
                         },
                         child: const Text('Home', style: TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 15,),
@@ -282,8 +280,7 @@ class _BathroomDetailState extends State<BathroomDetails> {
 
 
                     ElevatedButton(style: ElevatedButton.styleFrom(
-                        primary: Colors.black,
-                        onPrimary: Colors.white
+                        foregroundColor: Colors.white, backgroundColor: Colors.black
                     ), onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) =>
 

@@ -1,32 +1,33 @@
 
-import 'dart:developer';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flush/QrCodeScanner.dart';
+import 'package:flush/features/bathroom/presentation/QrCodeScanner.dart';
 import 'package:flush/main.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
+import 'package:flush/features/auth/presentation/LoginPage.dart';
 
 
 
 
 import 'BathroomDetails.dart';
-import 'ReviewPage.dart';
-import 'SearchPage.dart';
+import './ReviewPage.dart';
+import './SearchPage.dart';
 import 'TagBathroomPage.dart';
 
 import 'package:get/get.dart';
 
 
 
-import 'model/Bathroom.dart';
-import 'model/BathroomRepo.dart';
+import '../data/models/Bathroom.dart';
+import '../data/repository/BathroomRepo.dart';
 
 
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
 
 
 
@@ -202,17 +203,17 @@ class _HomePageState extends State<HomePage> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => LoginPage(title: ''),
+                      builder: (_) => LoginPage(),
                     ),
                   );
                 },
-                child: Text('Log Out'),
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                   backgroundColor: Colors.red,
                 ),
+                child: const Text('Log Out'),
               ),
             ),
           ],
@@ -237,7 +238,7 @@ class _HomePageState extends State<HomePage> {
                 backgroundColor: Colors.blue,
                 child: const Icon(Icons.search),
               ),
-              SizedBox(width: 30),
+              const SizedBox(width: 30),
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -250,8 +251,8 @@ class _HomePageState extends State<HomePage> {
                     ),
                   );
                 },
-                child: Text('Scan QR Code'),
-                style: ElevatedButton.styleFrom(shape: StadiumBorder()),
+                style: ElevatedButton.styleFrom(shape: const StadiumBorder()),
+                child: const Text('Scan QR Code'),
               ),
             ],
           ),
