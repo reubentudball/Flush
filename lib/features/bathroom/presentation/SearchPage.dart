@@ -2,154 +2,187 @@ import 'package:flush/features/bathroom/presentation/BathroomDetails.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-
-
 import '../data/models/Bathroom.dart';
 import '../data/repository/BathroomRepo.dart';
 
 const List<String> sortBy = <String>['Nearest', 'Most Clean', 'Most Quiet', 'Most Accessible'];
 
-
-class SearchPage extends StatefulWidget{
-
+class SearchPage extends StatefulWidget {
   final Position currentPosition;
   final List<Bathroom> bathrooms;
 
   const SearchPage({super.key, required this.currentPosition, required this.bathrooms});
 
-
   @override
   _SearchPageState createState() => _SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage>{
-
+class _SearchPageState extends State<SearchPage> {
   late Position currentPosition;
-  late double distance;
   final bathroomRepo = Get.put(BathroomRepository());
   late List<Bathroom> bathrooms;
+  String selectedSort = sortBy.first;
 
   @override
   void initState() {
+    super.initState();
     currentPosition = widget.currentPosition;
     bathrooms = widget.bathrooms;
+    _sortBathrooms(); // Initial sorting
   }
 
+  void _sortBathrooms() {
+    setState(() {
+      if (selectedSort == 'Nearest') {
+        bathrooms.sort((a, b) => _calculateDistance(a).compareTo(_calculateDistance(b)));
+      } else if (selectedSort == 'Most Clean') {
+        bathrooms.sort((a, b) => b.cleanlinessScore!.compareTo(a.cleanlinessScore!));
+      } else if (selectedSort == 'Most Quiet') {
+        bathrooms.sort((a, b) => b.trafficScore!.compareTo(a.trafficScore!));
+      } else if (selectedSort == 'Most Accessible') {
+        bathrooms.sort((a, b) => b.accessibilityScore!.compareTo(a.accessibilityScore!));
+      }
+    });
+  }
 
-  ScrollController sc = ScrollController();
-
+  double _calculateDistance(Bathroom bathroom) {
+    return Geolocator.distanceBetween(
+      currentPosition.latitude,
+      currentPosition.longitude,
+      bathroom.location.latitude,
+      bathroom.location.longitude,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Find Bathroom"),
       ),
-      body: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: [const Row(
-          children: <Widget>[
-            Expanded(
-              child: Padding(
-              padding: EdgeInsets.only(left: 20),
-
-
-            child :TextField(
-              decoration: InputDecoration(
-                hintText: 'Search for location',
-                hintStyle: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 18,
-                  fontStyle: FontStyle.italic,
+      body: Column(
+        children: [
+          // Search Bar and Sorting
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      hintText: 'Search for location',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                    onChanged: (query) {
+                      setState(() {
+                        bathrooms = widget.bathrooms
+                            .where((bathroom) =>
+                        bathroom.title.toLowerCase().contains(query.toLowerCase()) ||
+                            bathroom.directions.toLowerCase().contains(query.toLowerCase()))
+                            .toList();
+                      });
+                    },
+                  ),
                 ),
-              ),
-              style: TextStyle(
-                color: Colors.black,
-              ),
+                const SizedBox(width: 8),
+                SortingDropDown(
+                  selectedSort: selectedSort,
+                  onSortChanged: (newSort) {
+                    setState(() {
+                      selectedSort = newSort;
+                      _sortBathrooms();
+                    });
+                  },
+                ),
+              ],
             ),
           ),
-            ),
-            SortingDropDown(),
-
-    ],
-
-
-      ),
-          ListView.builder(itemCount: bathrooms.length,
-              physics: const NeverScrollableScrollPhysics(),
-              scrollDirection: Axis.vertical,
-              shrinkWrap: true,
-              padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-              itemBuilder: (context, index){
+          // Bathroom List
+          Expanded(
+            child: bathrooms.isEmpty
+                ? const Center(
+              child: Text(
+                "No bathrooms found.",
+                style: TextStyle(fontSize: 16),
+              ),
+            )
+                : ListView.builder(
+              padding: const EdgeInsets.all(8.0),
+              itemCount: bathrooms.length,
+              itemBuilder: (context, index) {
+                final bathroom = bathrooms[index];
                 return Card(
-
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
                     child: Column(
-                      children: [Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(style: const TextStyle(fontWeight: FontWeight.bold), bathrooms[index].title)
+                        Text(
+                          bathroom.title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text("Directions: ${bathroom.directions}"),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Distance: ${(_calculateDistance(bathroom) / 1000).toStringAsFixed(2)} km",
+                              style: const TextStyle(color: Colors.grey),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => BathroomDetails(bathroom: bathroom),
+                                  ),
+                                );
+                              },
+                              child: const Text("See Details"),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                        const SizedBox(
-                          height: 20.0,
-                        ),
-                        Row(mainAxisAlignment: MainAxisAlignment.start,
-                          children: [const Text(style: TextStyle(fontWeight: FontWeight.bold),"Directions: "),
-                          Flexible(
-                              child: Container(padding:  const EdgeInsets.only(right: 13.0),
-                              child:Text(bathrooms[index].directions)))
-                          ,
-
-                        ],),
-                        Row(mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            ElevatedButton(style: ElevatedButton.styleFrom(
-                            ), onPressed: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (_) =>
-                                  BathroomDetails(bathroom: bathrooms[index])
-
-                              ));}, child: const Text("See Details"))
-                          ],
-                        )
-                  ]
-                    ),
+                  ),
                 );
-
-              }
-          )
-    ]
-      )
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class SortingDropDown extends StatefulWidget{
-  const SortingDropDown({super.key});
+class SortingDropDown extends StatelessWidget {
+  final String selectedSort;
+  final Function(String) onSortChanged;
+
+  const SortingDropDown({super.key, required this.selectedSort, required this.onSortChanged});
 
   @override
-  _SortingDropDownState createState() => _SortingDropDownState();
-}
-
-class _SortingDropDownState extends State<SortingDropDown>{
-  String defaultValue = sortBy.first;
-
-  @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return DropdownButton<String>(
-      value: defaultValue,
+      value: selectedSort,
       icon: const Icon(Icons.sort),
-
-      onChanged: (String? value) {
-        setState(() {
-          defaultValue = value!;
-        });
+      onChanged: (String? newValue) {
+        if (newValue != null) {
+          onSortChanged(newValue);
+        }
       },
-      items: sortBy.map<DropdownMenuItem<String>>((String value){
+      items: sortBy.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
-          child: Text(value)
+          child: Text(value),
         );
       }).toList(),
     );

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class SnackbarHelper {
-  // Show a success message
   static void showSuccess(BuildContext context, String message) {
     Get.snackbar(
       'Success',
@@ -15,7 +14,6 @@ class SnackbarHelper {
     );
   }
 
-  // Show an error message
   static void showError(BuildContext context, String message) {
     Get.snackbar(
       'Error',
@@ -28,7 +26,6 @@ class SnackbarHelper {
     );
   }
 
-  // Show a warning message
   static void showWarning(BuildContext context, String message) {
     Get.snackbar(
       'Warning',
