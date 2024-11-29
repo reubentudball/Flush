@@ -13,7 +13,7 @@ import 'model/Bathroom.dart';
 import 'model/BathroomRepo.dart';
 import 'model/Review.dart';
 import 'model/Comment.dart';
-import 'Services.dart';
+
 
 
 
@@ -48,11 +48,8 @@ class _BathroomDetailState extends State<BathroomDetails> {
   void initState(){
     super.initState();
     bathroom = widget.bathroom;
-
     getReviews();
     getHealthScore();
-    log("bathroom ID: ${bathroom.id!}");
-    log("bathroom Comments: ${bathroom.comments!}");
   }
 
   void getReviews() async {
@@ -73,33 +70,35 @@ class _BathroomDetailState extends State<BathroomDetails> {
     var commentWeightValue = 0.25;
 
     bathroomReviews = (await bathroomRepo.getReviewsFromBathroom(bathroom.id!));
-    bathroomComments = await fetchComments(bathroom.id!);
-    log('Does this work: ${bathroomComments.length}');
+    bathroomComments = (await bathroomRepo.getBathroomComment(bathroom.id!));
     // Transform comments and analyze sentiment
-    for (int i = 0; i < bathroomReviews.length; i++) {
-      cleanQual.add(bathroomReviews[i].cleanliness);
-      if (cleanQual[i] == 'Very Clean') {
-        cleanlinessWeight += 4.0;
-      } else if (cleanQual[i] == 'Clean') {
-        cleanlinessWeight += 3.0;
-      } else if (cleanQual[i] == 'Messy') {
-        cleanlinessWeight += 2.0;
-      } else if (cleanQual[i] == 'Very Messy') {
-        cleanlinessWeight += 1.0;
+
+
+    Future.delayed(const Duration(seconds: 1)).then((value) => setState(()
+    async {
+      for (int i = 0; i < bathroomReviews.length; i++) {
+        cleanQual.add(bathroomReviews[i].cleanliness);
+        if (cleanQual[i] == 'Very Clean') {
+          cleanlinessWeight += 4.0;
+        } else if (cleanQual[i] == 'Clean') {
+          cleanlinessWeight += 3.0;
+        } else if (cleanQual[i] == 'Messy') {
+          cleanlinessWeight += 2.0;
+        } else if (cleanQual[i] == 'Very Messy') {
+          cleanlinessWeight += 1.0;
+        }
       }
-    }
-    int processedCount = 0;
-    for (var comment in bathroomComments) {
-      if (comment.processed == false) {
-        double sentimentScore = await sentimentAnalysis.analyzeSentiment(comment.reviewText);
-        commentWeight += sentimentScore; // Sum sentiment scores
-        comment.processed = true; // Mark comment as processed
-        processedCount++;
-        log('Sentiment: $sentimentScore');
-        log('Count: $processedCount');
-      }
-    }
+
       //If comment has not been analyzed then preform sentiment analysis on it
+      int processedCount = 0;
+      for (var comment in bathroomComments) {
+        if (comment.processed == false) {
+          double sentimentScore = await sentimentAnalysis.analyzeSentiment(comment.reviewText);
+          commentWeight += sentimentScore; // Sum sentiment scores
+          comment.processed = true; // Mark comment as processed
+          processedCount++;
+        }
+      }
       cleanlinessWeight =
           (((cleanlinessWeight / bathroomReviews.length) / 4.0) * 100) *
               cleanWeightValue; //Turn to percentage (4 is 100%) and apply weighted value
@@ -110,15 +109,14 @@ class _BathroomDetailState extends State<BathroomDetails> {
       }
 
       healthScore = cleanlinessWeight + commentWeight;
- // Update Firestore with the updated comments and health score
-       await FirebaseFirestore.instance.collection('Bathroom').doc(bathroom.id!).update({
-         'comments': bathroomComments,
-         'healthScore': healthScore,
-       });
-    log("${healthScore}");
+// Update Firestore with the updated comments and health score
+      await FirebaseFirestore.instance.collection('Bathroom').doc(bathroom.id!).update({
+        'comments': bathroomComments,
+        'healthScore': healthScore,
+      });
+      log("${healthScore}");
 
-
-
+    }));
 
 
   }
