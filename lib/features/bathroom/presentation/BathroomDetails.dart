@@ -1,15 +1,18 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flush/features/bathroom/presentation/EditBathroomPage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../controllers/BathroomController.dart';
 import '../data/models/Bathroom.dart';
+
 import '../data/models/Report.dart';
 import '../controllers/ReportController.dart';
 import 'package:flush/features/bathroom/presentation/CommentPage.dart';
 import 'package:flush/features/bathroom/presentation/HomePage.dart';
 import 'package:flush/features/bathroom/presentation/ReviewList.dart';
 import 'package:get/get.dart';
+
 
 import '../data/repository/BathroomRepo.dart';
 import 'ReviewPage.dart';
@@ -26,7 +29,7 @@ class BathroomDetails extends StatefulWidget {
 class _BathroomDetailsState extends State<BathroomDetails> {
   final ReportController _reportController = Get.find<ReportController>();
   String? facilityName;
-
+  
   @override
   void initState() {
     super.initState();
@@ -51,6 +54,7 @@ class _BathroomDetailsState extends State<BathroomDetails> {
       debugPrint("Error fetching facility name: $e");
     }
   }
+
 
   void _reportIssue() {
     final TextEditingController descriptionController = TextEditingController();
@@ -141,6 +145,7 @@ class _BathroomDetailsState extends State<BathroomDetails> {
       MaterialPageRoute(builder: (context) => EditBathroomPage(bathroom: widget.bathroom))
     );
   }
+
 
   void _deleteBathroom() async {
     final confirm = await showDialog<bool>(
