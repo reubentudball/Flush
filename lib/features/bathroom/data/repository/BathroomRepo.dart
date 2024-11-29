@@ -144,14 +144,28 @@ class BathroomRepository extends GetxService {
           .doc(bathroomId)
           .collection("Reviews")
           .get();
-      final reviews =
-      snapshot.docs.map((doc) => Review.fromSnapshot(doc)).toList();
-      return reviews;
+
+      final Map<String, String> userNameCache = {};
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final userId = data['userId'] ?? "Anonymous";
+
+        if (!userNameCache.containsKey(userId)) {
+          final userSnapshot = await _db.collection("Users").doc(userId).get();
+          userNameCache[userId] = userSnapshot.data()?['name'] ?? "Unknown User";
+        }
+
+        data['userName'] = userNameCache[userId];
+      }
+
+      return snapshot.docs.map((doc) => Review.fromSnapshot(doc)).toList();
     } catch (e) {
       log("Error fetching reviews for bathroom $bathroomId: $e");
       rethrow;
     }
   }
+
 
   Future<List<Comment>> getBathroomComments(String bathroomId) async {
     try {
