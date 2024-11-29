@@ -214,10 +214,6 @@ class _HomePageState extends State<HomePage> {
               },
               itemBuilder: (context) => [
                 const PopupMenuItem(
-                  value: 0.1,
-                  child: Text("Search within 100 m")
-                ),
-                const PopupMenuItem(
                   value: 0.5,
                   child: Text("Search within 0.5 km"),
                 ),
