@@ -81,10 +81,9 @@ class _TagBathroomPageState extends State<TagBathroomPage> {
                       title: title,
                       directions: directions,
                       location: location,
-                      ownerID: user.uid, // Assign the logged-in user's UID
+                      ownerID: user.uid,
                     );
 
-                    // Use the controller to add the bathroom
                     await _bathroomController.addBathroom(bathroom);
                     Navigator.pushNamedAndRemoveUntil(
                       context,

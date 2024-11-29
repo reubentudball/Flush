@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../auth/controllers/UserController.dart';
@@ -45,6 +46,7 @@ class _ReviewPageState extends State<ReviewPage> {
       feedback: feedback,
       accessibilityFeatures: selectedAccessibilityFeatures,
       userId: userId,
+      createdAt: Timestamp.now()
     );
 
     final controller = Get.find<BathroomController>();

@@ -7,6 +7,7 @@ class Review {
   String? feedback = "";
   List<String> accessibilityFeatures = [];
   String userId = "";
+  Timestamp createdAt;
 
   Review({
     required this.cleanliness,
@@ -14,7 +15,8 @@ class Review {
     required this.size,
     this.feedback,
     required this.accessibilityFeatures,
-    required this.userId
+    required this.userId,
+    required this.createdAt,
   });
 
   toJson() {
@@ -24,7 +26,8 @@ class Review {
       "size": size,
       "feedback": feedback,
       "accessibilityFeatures": accessibilityFeatures,
-      "userId": userId
+      "userId": userId,
+      "createdAt": createdAt
     };
   }
 
@@ -37,6 +40,7 @@ class Review {
       feedback: data["feedback"],
       accessibilityFeatures: List<String>.from(data["accessibilityFeatures"] ?? []),
       userId: data["userId"] ?? "",
+      createdAt: data["createdAt"] ?? Timestamp.now(),
     );
   }
 }
