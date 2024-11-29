@@ -43,7 +43,7 @@ class _QrCodeGeneratorState extends State<QrCodeGenerator> {
               "Qr Code Created! (Take Screenshot)",
               style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 20.0), // Adds some spacing
+            SizedBox(height: 20.0),
             QrImageView(
               data: jsonQrCode,
               version: QrVersions.auto,
