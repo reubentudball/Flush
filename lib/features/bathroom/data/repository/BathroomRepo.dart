@@ -105,6 +105,7 @@ class BathroomRepository extends GetxService {
         center: center,
         radiusInKm: radiusInKm,
         field: 'geo',
+        strictMode: true,
         geopointFrom: (data) {
           if (data['geo'] != null && data['geo']['geopoint'] != null) {
             final location = data['geo']['geopoint'] as GeoPoint;
