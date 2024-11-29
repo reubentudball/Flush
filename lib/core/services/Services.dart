@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'model/Comment.dart';
+import '../../features/bathroom/data/models/Comment.dart';
 
 
 Future<List<Comment>> fetchComments(String bathroomId) async {
@@ -20,7 +20,7 @@ Future<List<Comment>> fetchComments(String bathroomId) async {
 
     // Map each comment data (from array) to a Comment object
     return commentsData.map((commentData) {
-      log('CommentList: ${commentData}');
+      log('CommentList: $commentData');
       return Comment.fromJson(
           commentData); // Converting Map to Comment object
 
