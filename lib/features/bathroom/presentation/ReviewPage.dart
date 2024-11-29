@@ -23,7 +23,7 @@ class _ReviewPageState extends State<ReviewPage> {
   int traffic = 3;
   int size = 3;
   String feedback = "";
-  List<String> selectedAccessibilityFeatures = []; // Track selected features
+  List<String> selectedAccessibilityFeatures = [];
 
   void toggleAccessibilityFeature(String feature) {
     setState(() {
@@ -82,7 +82,6 @@ class _ReviewPageState extends State<ReviewPage> {
             ),
             const SizedBox(height: 16),
 
-            // Traffic
             const Text('Traffic', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Text(ReviewConstants.trafficDescriptions[traffic - 1]),
             RatingBar.builder(
@@ -117,14 +116,12 @@ class _ReviewPageState extends State<ReviewPage> {
             ),
             const SizedBox(height: 16),
 
-            // Feedback
             TextField(
               decoration: const InputDecoration(labelText: 'Feedback'),
               onChanged: (value) => setState(() => feedback = value),
             ),
             const SizedBox(height: 16),
 
-            // Save Button
             ElevatedButton(
               onPressed: saveReview,
               child: const Text('Save Review'),
