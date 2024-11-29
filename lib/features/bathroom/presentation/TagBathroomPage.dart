@@ -86,9 +86,10 @@ class _TagBathroomPageState extends State<TagBathroomPage> {
 
                     // Use the controller to add the bathroom
                     await _bathroomController.addBathroom(bathroom);
-                    Navigator.push(
+                    Navigator.pushNamedAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (_) => const HomePage()),
+                      '/home',
+                          (route) => false,
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(

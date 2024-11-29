@@ -16,6 +16,7 @@ class Bathroom {
   final double? accessibilityScore;
   final CollectionReference? reviews;
   final List<dynamic>? comments;
+  final DateTime? updatedAt;
 
   Bathroom({
     this.id,
@@ -24,7 +25,7 @@ class Bathroom {
     required this.location,
     this.geohash,
     this.facilityID,
-    this.ownerID, // Initialize ownerID
+    this.ownerID,
     this.healthScore,
     this.cleanlinessScore,
     this.trafficScore,
@@ -32,6 +33,7 @@ class Bathroom {
     this.isVerified = false,
     this.reviews,
     this.comments,
+    this.updatedAt,
   });
 
   Map<String, dynamic> toJson() {
@@ -51,6 +53,7 @@ class Bathroom {
       "isVerified": isVerified,
       "reviews": reviews,
       "comments": comments ?? [],
+      "updatedAt": updatedAt?.toUtc().toIso8601String(),
     };
   }
 
@@ -89,6 +92,9 @@ class Bathroom {
           ? FirebaseFirestore.instance.collection(data["reviews"])
           : null,
       comments: data["comments"] as List<dynamic>? ?? [],
+      updatedAt: data["updatedAt"] != null
+          ? DateTime.parse(data["updatedAt"]).toLocal()
+          : null,
     );
   }
 }

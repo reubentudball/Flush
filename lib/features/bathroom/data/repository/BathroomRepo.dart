@@ -52,6 +52,30 @@ class BathroomRepository extends GetxService {
     }
   }
 
+  Stream<List<Bathroom>> streamBathrooms() {
+    return _db.collection('Bathroom').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => Bathroom.fromSnapshot(doc)).toList();
+    });
+  }
+
+
+  Future<Bathroom?> getBathroomById(String id) async {
+    try {
+      final docSnapshot = await _db.collection('Bathroom').doc(id).get();
+
+      if (docSnapshot.exists){
+        return Bathroom.fromSnapshot(docSnapshot);
+      } else {
+        debugPrint("Bathroom with ID $id does not exist");
+        return null;
+      }
+
+    } catch (e){
+      debugPrint("Error fetching bathroom by ID: ${e}");
+      return null;
+    }
+  }
+
   Future<List<Bathroom>> getAllBathrooms() async {
     try {
       final snapshot = await _db.collection("Bathroom").get();
@@ -64,50 +88,6 @@ class BathroomRepository extends GetxService {
     }
   }
 
-  Future<void> testGeoPoints() async {
-    final geoCollection = GeoCollectionReference<Map<String, dynamic>>(
-      FirebaseFirestore.instance.collection('Bathroom'),
-    );
-
-    // Define a test center point (replace with a known location)
-    final GeoFirePoint testCenter = GeoFirePoint(
-      GeoPoint(43.469065, -79.70004), // Replace with coordinates near your data
-    );
-
-    // Fetch all documents within a large radius (e.g., 50 km)
-    try {
-      final documents = await geoCollection.fetchWithin(
-        center: testCenter,
-        radiusInKm: 50.0, // Large radius to ensure results
-        field: 'location',
-        geopointFrom: (data) {
-          // Debug: Log the raw document data
-          debugPrint("Raw data from document: $data");
-
-          if (data.containsKey('location')) {
-            final location = data['location'] as GeoPoint;
-            debugPrint(
-              "Found GeoPoint: latitude=${location.latitude}, longitude=${location.longitude}",
-            );
-            return location;
-          } else {
-            debugPrint("No GeoPoint found in this document.");
-            return GeoPoint(0, 0); // Dummy GeoPoint for missing data
-          }
-        },
-      );
-
-      // Log the number of documents retrieved
-      debugPrint("Total documents retrieved: ${documents.length}");
-      for (var doc in documents) {
-        debugPrint("Document ID: ${doc.id}, Data: ${doc.data()}");
-      }
-    } catch (e, stacktrace) {
-      debugPrint("Error during testGeoPoints: $e");
-      debugPrint("Stacktrace: $stacktrace");
-    }
-  }
-
 
   Future<List<Bathroom>> fetchNearbyBathrooms({
     required GeoFirePoint center,
@@ -116,25 +96,25 @@ class BathroomRepository extends GetxService {
     try {
       debugPrint(
           "Fetching bathrooms within $radiusInKm km of center: "
-              "latitude: ${center.latitude}, longitude: ${center.longitude}, geohash: ${center.geohash}");
+              "latitude: ${center.latitude}, longitude: ${center
+              .longitude}, geohash: ${center.geohash}");
 
-      // Test GeoPoints to ensure documents exist (optional for debugging)
-      await testGeoPoints();
+
 
       final snapshots = await geoCollection.fetchWithin(
         center: center,
         radiusInKm: radiusInKm,
-        field: 'geo', // Specify the full path to the geopoint
+        field: 'geo',
         geopointFrom: (data) {
-          // Access the geopoint directly
           if (data['geo'] != null && data['geo']['geopoint'] != null) {
             final location = data['geo']['geopoint'] as GeoPoint;
             debugPrint(
-                "Processing GeoPoint: latitude=${location.latitude}, longitude=${location.longitude}");
+                "Processing GeoPoint: latitude=${location
+                    .latitude}, longitude=${location.longitude}");
             return location;
           } else {
             debugPrint("Geo field is missing or invalid in this document.");
-            return GeoPoint(0, 0); // Fallback for missing geopoint
+            return GeoPoint(0, 0);
           }
         },
       );
@@ -146,7 +126,8 @@ class BathroomRepository extends GetxService {
         return Bathroom.fromSnapshot(doc);
       }).toList();
 
-      debugPrint("Converted documents to Bathroom objects: ${bathrooms.length}");
+      debugPrint(
+          "Converted documents to Bathroom objects: ${bathrooms.length}");
       return bathrooms;
     } catch (e, stacktrace) {
       debugPrint("Error fetching nearby bathrooms: $e");
@@ -178,7 +159,8 @@ class BathroomRepository extends GetxService {
       if (snapshot.exists) {
         final commentsData =
         List<Map<String, dynamic>>.from(snapshot.data()?['comments'] ?? []);
-        final comments = commentsData.map((data) => Comment.fromJson(data)).toList();
+        final comments = commentsData.map((data) => Comment.fromJson(data))
+            .toList();
         return comments;
       } else {
         log("Bathroom document $bathroomId does not exist");
@@ -192,13 +174,17 @@ class BathroomRepository extends GetxService {
 
   Future<void> updateBathroom(Bathroom bathroom) async {
     try {
-      await _db.collection("Bathroom").doc(bathroom.id).update(bathroom.toJson());
+      final updatedData = bathroom.toJson();
+      updatedData['updatedAt'] = DateTime.now().toUtc().toIso8601String();
+
+      await _db.collection("Bathroom").doc(bathroom.id).update(updatedData);
       log("Bathroom ${bathroom.id} updated successfully");
     } catch (e) {
       log("Error updating bathroom ${bathroom.id}: $e");
       rethrow;
     }
   }
+
 
   Future<void> updateBathroomsBatch(List<Bathroom> bathrooms) async {
     final batch = _db.batch();
@@ -212,6 +198,41 @@ class BathroomRepository extends GetxService {
     } catch (e) {
       log("Error during batch update: $e");
       rethrow;
+    }
+  }
+
+
+  Future<void> deleteBathroom(String id) async {
+    try {
+      await _db.collection('Bathroom').doc(id).delete();
+      debugPrint("Bathroom with ID $id deleted successfully.");
+    } catch (e) {
+      debugPrint("Error deleting bathroom with ID $id: $e");
+      rethrow;
+    }
+  }
+
+
+
+  Future<List<Bathroom>> refreshBathrooms(List<String> bathroomIds) async {
+    try {
+      final List<Bathroom> updatedBathrooms = [];
+
+      for (String id in bathroomIds) {
+        final docSnapshot = await _db.collection('Bathroom').doc(id).get();
+
+        if (docSnapshot.exists) {
+          updatedBathrooms.add(Bathroom.fromSnapshot(docSnapshot));
+        } else {
+          debugPrint("Bathroom with ID $id does not exist");
+        }
+      }
+
+      debugPrint("Refreshed ${updatedBathrooms.length} bathrooms.");
+      return updatedBathrooms;
+    } catch (e) {
+      debugPrint("Error refreshing bathrooms: $e");
+      return [];
     }
   }
 }

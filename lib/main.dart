@@ -1,3 +1,4 @@
+import 'package:flush/features/bathroom/presentation/BathroomDetails.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
@@ -61,7 +62,8 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/sign-up', page: () =>  SignUpPage()),
         GetPage(name: '/forgot-password', page: () =>  ForgotPasswordPage()),
         GetPage(name: '/home', page: () => const HomePage()),
-        GetPage(name: '/profile', page: () => ProfilePage() )
+        GetPage(name: '/profile', page: () => ProfilePage()),
+        GetPage(name: '/bathroom-details', page: () => BathroomDetails(bathroom: Get.arguments)),
 
       ],
     );

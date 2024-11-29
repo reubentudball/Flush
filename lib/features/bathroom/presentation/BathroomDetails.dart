@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flush/features/bathroom/presentation/EditBathroomPage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../controllers/BathroomController.dart';
 import '../data/models/Bathroom.dart';
 import '../data/models/Report.dart';
 import '../controllers/ReportController.dart';
@@ -9,6 +11,7 @@ import 'package:flush/features/bathroom/presentation/HomePage.dart';
 import 'package:flush/features/bathroom/presentation/ReviewList.dart';
 import 'package:get/get.dart';
 
+import '../data/repository/BathroomRepo.dart';
 import 'ReviewPage.dart';
 
 class BathroomDetails extends StatefulWidget {
@@ -133,7 +136,10 @@ class _BathroomDetailsState extends State<BathroomDetails> {
   }
 
   void _editBathroom() {
-    Navigator.pushNamed(context, '/edit', arguments: widget.bathroom);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EditBathroomPage(bathroom: widget.bathroom))
+    );
   }
 
   void _deleteBathroom() async {
@@ -148,13 +154,14 @@ class _BathroomDetailsState extends State<BathroomDetails> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(false); // Cancel deletion
+                Navigator.of(context).pop(false);
               },
               child: const Text("Cancel"),
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pop(true); // Confirm deletion
+
+                Navigator.of(context).pop(true);
               },
               child: const Text("Delete"),
             ),
@@ -165,14 +172,13 @@ class _BathroomDetailsState extends State<BathroomDetails> {
 
     if (confirm == true) {
       try {
-        await FirebaseFirestore.instance
-            .collection('Bathroom')
-            .doc(widget.bathroom.id)
-            .delete();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Bathroom deleted successfully.")),
+        final bathroomController = Get.find<BathroomController>();
+        await bathroomController.deleteBathroom(widget.bathroom.id!);
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/home',
+              (route) => false,
         );
-        Navigator.pop(context); // Navigate back after deletion
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Failed to delete bathroom: $e")),
