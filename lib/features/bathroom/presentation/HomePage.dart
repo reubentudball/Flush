@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:geoflutterfire_plus/geoflutterfire_plus.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import '../data/models/Bathroom.dart';
 import '../data/repository/BathroomRepo.dart';
@@ -29,7 +28,8 @@ class _HomePageState extends State<HomePage> {
   final userController = Get.put(UserController());
   List<Bathroom> _bathrooms = [];
   final List<Marker> _tagMarkers = [];
-  double _searchRadius = 0.5;
+  final Set<Circle> _circles = {};
+  double _searchRadius = 0.5; // Radius in kilometers
   bool isTagging = false;
   bool showVerified = true;
   bool showUnverified = true;
@@ -37,7 +37,8 @@ class _HomePageState extends State<HomePage> {
   BitmapDescriptor verifiedMarkerIcon =
   BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
   BitmapDescriptor unverifiedMarkerIcon = BitmapDescriptor.defaultMarker;
-  BitmapDescriptor newBathroomMarker = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
+  BitmapDescriptor newBathroomMarker =
+  BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
 
   @override
   void initState() {
@@ -45,6 +46,30 @@ class _HomePageState extends State<HomePage> {
     _getCurrentPosition();
   }
 
+  Future<void> _getCurrentPosition() async {
+    final hasPermission = await _handleLocationPermission();
+    if (!hasPermission) return;
+
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      setState(() {
+        _currentPosition = position;
+        _updateSearchRadiusCircle();
+      });
+
+      _fetchNearbyBathrooms();
+    } catch (e) {
+      debugPrint("Error getting current position: $e");
+    }
+  }
+
+
+  void _onMapCreated(GoogleMapController controller) {
+    mapController = controller;
+  }
 
   Future<void> _fetchNearbyBathrooms() async {
     if (_currentPosition == null) return;
@@ -78,7 +103,9 @@ class _HomePageState extends State<HomePage> {
           Marker(
             markerId: MarkerId(bathroom.id ?? ""),
             position: bathroom.location,
-            icon: bathroom.isVerified ? verifiedMarkerIcon : unverifiedMarkerIcon,
+            icon: bathroom.isVerified
+                ? verifiedMarkerIcon
+                : unverifiedMarkerIcon,
             infoWindow: InfoWindow(
               title: bathroom.title,
               snippet: bathroom.directions,
@@ -99,27 +126,26 @@ class _HomePageState extends State<HomePage> {
     setState(() {});
   }
 
-  Future<void> _getCurrentPosition() async {
-    final hasPermission = await _handleLocationPermission();
-    if (!hasPermission) return;
+  void _updateSearchRadiusCircle() {
+    if (_currentPosition == null) return;
 
-    try {
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
+    _circles.clear();
 
-      setState(() {
-        _currentPosition = position;
-      });
+    _circles.add(
+      Circle(
+        circleId: const CircleId("search_radius"),
+        center: LatLng(
+          _currentPosition!.latitude,
+          _currentPosition!.longitude,
+        ),
+        radius: _searchRadius * 1000, // Convert km to meters
+        fillColor: Colors.blue.withOpacity(0.2), // Light blue with transparency
+        strokeColor: Colors.blue, // Border color
+        strokeWidth: 2, // Border width
+      ),
+    );
 
-      _fetchNearbyBathrooms();
-    } catch (e) {
-      debugPrint("Error getting current position: $e");
-    }
-  }
-
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
+    setState(() {});
   }
 
   Future<bool> _handleLocationPermission() async {
@@ -156,6 +182,7 @@ class _HomePageState extends State<HomePage> {
 
     return true;
   }
+
   @override
   Widget build(BuildContext context) {
     if (_currentPosition == null) {
@@ -181,6 +208,7 @@ class _HomePageState extends State<HomePage> {
               onSelected: (value) {
                 setState(() {
                   _searchRadius = value;
+                  _updateSearchRadiusCircle();
                   _fetchNearbyBathrooms();
                 });
               },
@@ -239,6 +267,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             GoogleMap(
               markers: Set.from(_tagMarkers),
+              circles: _circles, // Add circles to the map
               onMapCreated: _onMapCreated,
               initialCameraPosition: CameraPosition(
                 target: LatLng(
@@ -287,7 +316,6 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             const SizedBox(height: 16),
             FloatingActionButton.extended(
               heroTag: 'search',
@@ -324,7 +352,6 @@ class _HomePageState extends State<HomePage> {
               icon: const Icon(Icons.qr_code_scanner),
               label: const Text("Scan QR"),
             ),
-
           ],
         ),
       );
