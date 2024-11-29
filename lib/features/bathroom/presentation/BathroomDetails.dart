@@ -10,7 +10,7 @@ import 'package:flush/features/bathroom/presentation/CommentPage.dart';
 import 'package:flush/features/bathroom/presentation/HomePage.dart';
 import 'package:flush/features/bathroom/presentation/ReviewList.dart';
 import 'package:get/get.dart';
-
+import 'QrCodeGenerator.dart';
 import '../data/repository/BathroomRepo.dart';
 import 'ReviewPage.dart';
 
@@ -323,25 +323,43 @@ class _BathroomDetailsState extends State<BathroomDetails> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 16),
-
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        ReviewPage(bathroom: widget.bathroom),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
                   ),
-                );
-              },
-              child: const Text('Leave a Review'),
-            ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            ReviewPage(bathroom: widget.bathroom),
+                      ),
+                    );
+                  },
+                  child: const Text('Leave a Review'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            QrCodeGenerator(bathroomId: widget.bathroom.id!),
+                      ),
+                    );
+                  },
+                  child: const Text('Create Qr Code'),
+                ),
+              ],
+            )
           ],
         ),
       ),

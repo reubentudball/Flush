@@ -91,10 +91,10 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
     );
   }
 
-  void foundQrCode(BarcodeCapture capture) {
+  void foundQrCode(capture) {
     try {
-      final List<Barcode> barcodes = capture.barcodes;
-      final String? rawValue = barcodes.isNotEmpty ? barcodes.first.rawValue : null;
+      final List<Barcode> qrCodeInfo = capture.barcodes;
+      final String? rawValue = qrCodeInfo.isNotEmpty ? qrCodeInfo.first.rawValue : null;
 
       if (rawValue == null) throw Exception("Invalid QR code.");
 
