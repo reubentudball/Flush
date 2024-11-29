@@ -12,6 +12,7 @@ import './BathroomDetails.dart';
 import './TagBathroomPage.dart';
 import './QrCodeScanner.dart';
 import '../../auth/controllers/UserController.dart';
+import '../../auth/controllers/AuthController.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -25,6 +26,7 @@ class _HomePageState extends State<HomePage> {
   BitmapDescriptor? customMarker;
   Position? _currentPosition;
   final bathroomRepo = Get.put(BathroomRepository());
+  final userController = Get.put(UserController());
   List<Bathroom> _bathrooms = [];
   final List<Marker> _tagMarkers = [];
   double _searchRadius = 0.5;
@@ -216,8 +218,8 @@ class _HomePageState extends State<HomePage> {
                 if (value == "settings") {
                   Get.toNamed('/profile');
                 } else if (value == "logout") {
-                  FirebaseAuth.instance.signOut();
-                  Get.offNamed('/login');
+                  final authConn = Get.find<AuthController>();
+                  authConn.signOut();
                 }
               },
               itemBuilder: (context) => [

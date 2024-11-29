@@ -52,7 +52,11 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    _authController.autoLogin(); // Attempt auto-login on app start
+    _authController.autoLogin().then((_) {
+      if (_authController.currentUser == null) {
+        debugPrint("No valid user logged in.");
+      }
+    });
   }
 
   @override

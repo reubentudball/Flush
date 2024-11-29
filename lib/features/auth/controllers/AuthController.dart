@@ -4,6 +4,8 @@ import '../data/service/AuthService.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'UserController.dart';
+
 class AuthController extends GetxController {
   final AuthService _authService = AuthService();
 
@@ -23,6 +25,7 @@ class AuthController extends GetxController {
         } else {
           await _clearCredentials();
         }
+
         Get.offNamed('/home');
       }
     } catch (e) {
@@ -98,6 +101,7 @@ class AuthController extends GetxController {
 
   Future<void> signOut() async {
     try {
+      await _clearCredentials();
       await _authService.signOut();
       Get.offAllNamed('/login');
     } catch (e) {
