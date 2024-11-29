@@ -11,7 +11,6 @@ import '../data/repository/BathroomRepo.dart';
 import 'package:get/get.dart';
 
 class QrCodeScanner extends StatefulWidget {
-
   final Position currentPosition;
   final List<Bathroom> bathrooms;
 
@@ -23,16 +22,14 @@ class QrCodeScanner extends StatefulWidget {
 
 class _QrCodeScannerState extends State<QrCodeScanner> {
   MobileScannerController cameraController = MobileScannerController();
-  bool _screenOpened = false;
-  late Position currentPosition;
-  late double distance;
-  final bathroomRepo = Get.put(BathroomRepository());
-  late List<Bathroom> bathrooms;
   bool _scannerActive = true;
-
+  late Position currentPosition;
+  late List<Bathroom> bathrooms;
+  final bathroomRepo = Get.put(BathroomRepository());
 
   @override
   void initState() {
+    super.initState();
     currentPosition = widget.currentPosition;
     bathrooms = widget.bathrooms;
   }
@@ -43,37 +40,30 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
       appBar: AppBar(
         title: const Text('Qr Code Scanner'),
         actions: [
+          // Torch Toggle
           IconButton(
             color: Colors.white,
-            icon: ValueListenableBuilder(
-              valueListenable: cameraController.torchState,
-              builder: (context, state, child) {
-                switch (state) {
-                  case TorchState.off:
-                    return const Icon(Icons.flashlight_off, color: Colors.grey);
-                  case TorchState.on:
-                    return const Icon(Icons.flashlight_on, color: Colors.yellow);
-                }
-              },
+            icon: Icon(
+              cameraController.torchEnabled ? Icons.flashlight_on : Icons.flashlight_off,
+              color: cameraController.torchEnabled ? Colors.yellow : Colors.grey,
             ),
-            iconSize: 32.0,
-            onPressed: () => cameraController.toggleTorch(),
+            onPressed: () async {
+              await cameraController.toggleTorch();
+              setState(() {});
+            },
           ),
+          // Camera Switch
           IconButton(
             color: Colors.white,
-            icon: ValueListenableBuilder(
-              valueListenable: cameraController.cameraFacingState,
-              builder: (context, state, child) {
-                switch (state) {
-                  case CameraFacing.front:
-                    return const Icon(Icons.camera_front);
-                  case CameraFacing.back:
-                    return const Icon(Icons.camera_rear);
-                }
-              },
+            icon: Icon(
+              cameraController.facing == CameraFacing.front
+                  ? Icons.camera_front
+                  : Icons.camera_rear,
             ),
-            iconSize: 32.0,
-            onPressed: () => cameraController.switchCamera(),
+            onPressed: () async {
+              await cameraController.switchCamera();
+              setState(() {});
+            },
           ),
         ],
       ),
@@ -82,7 +72,7 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
           Expanded(
             child: MobileScanner(
               controller: cameraController,
-              onDetect: (capture) {
+              onDetect: (BarcodeCapture capture) {
                 if (_scannerActive) {
                   _scannerActive = false;
                   foundQrCode(capture);
@@ -91,6 +81,9 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
                   });
                 }
               },
+              onDetectError: (error, stackTrace) {
+                _showErrorDialog(context, "Error detecting QR Code", error.toString());
+              },
             ),
           ),
         ],
@@ -98,60 +91,65 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
     );
   }
 
-  void foundQrCode(capture) {
-    try{
-    final List<Barcode> qrCodeInfo = capture.barcodes;
-    Map<String, dynamic> decodedQrCode = json.decode(qrCodeInfo[0].rawValue!);
+  void foundQrCode(BarcodeCapture capture) {
+    try {
+      final List<Barcode> barcodes = capture.barcodes;
+      final String? rawValue = barcodes.isNotEmpty ? barcodes.first.rawValue : null;
 
-    if (!decodedQrCode.containsKey('id')) {
-      throw Exception("Invalid QR code.");
-    }
+      if (rawValue == null) throw Exception("Invalid QR code.");
 
-    int index = 0;
-    for (Bathroom bathroom in bathrooms) {
-      if (bathroom.id == decodedQrCode['id']) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Qr Code Detected!'),
-              content: const Text('Would you like to review the bathroom?'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _screenOpened = false; // Reset screen state
-                  },
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ReviewPage(bathroom: bathrooms[index]),
-                      ),
-                    );
-                    _screenOpened = false; // Reset screen state
-                  },
-                  child: const Text('Review'),
-                ),
-              ],
-            );
-          },
-        );
-        return;
+      Map<String, dynamic> decodedQrCode = json.decode(rawValue);
+
+      if (!decodedQrCode.containsKey('id')) {
+        throw Exception("Invalid QR code data.");
       }
-      index = index + 1;
+
+      Bathroom? bathroom = bathrooms.firstWhere(
+            (bathroom) => bathroom.id == decodedQrCode['id'],
+        orElse: () => throw Exception("Bathroom not found."),
+      );
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('QR Code Detected!'),
+            content: const Text('Would you like to review the bathroom?'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ReviewPage(bathroom: bathroom),
+                    ),
+                  );
+                },
+                child: const Text('Review'),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      _showErrorDialog(context, "Invalid QR Code", e.toString());
     }
-  } catch (e) {
+  }
+
+  void _showErrorDialog(BuildContext context, String title, String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Invalid QR Code"),
-          content: const Text("The QR code scanned is invalid. Please try again."),
+          title: Text(title),
+          content: Text(message),
           actions: [
             TextButton(
               onPressed: () {
@@ -161,8 +159,7 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
             ),
           ],
         );
-       },
-     );
-    }
+      },
+    );
   }
 }

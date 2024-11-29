@@ -1,16 +1,17 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flush/features/bathroom/presentation/QrCodeScanner.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:geoflutterfire_plus/geoflutterfire_plus.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flush/features/auth/presentation/LoginPage.dart';
-import 'BathroomDetails.dart';
-import './ReviewPage.dart';
-import './SearchPage.dart';
-import 'TagBathroomPage.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import '../data/models/Bathroom.dart';
 import '../data/repository/BathroomRepo.dart';
+import './SearchPage.dart';
+import './BathroomDetails.dart';
+import './TagBathroomPage.dart';
+import './QrCodeScanner.dart';
+import '../../auth/controllers/UserController.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,89 +22,98 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late GoogleMapController mapController;
+  BitmapDescriptor? customMarker;
   Position? _currentPosition;
   final bathroomRepo = Get.put(BathroomRepository());
   List<Bathroom> _bathrooms = [];
   final List<Marker> _tagMarkers = [];
-  var isTagging = false;
+  double _searchRadius = 0.5;
+  bool isTagging = false;
+  bool showVerified = true;
+  bool showUnverified = true;
 
-  BitmapDescriptor customMarker = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor verifiedMarkerIcon =
+  BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+  BitmapDescriptor unverifiedMarkerIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor newBathroomMarker = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
 
   @override
   void initState() {
     super.initState();
     _getCurrentPosition();
-    addCustomIcon();
-    _getBathrooms();
   }
 
-  void addCustomIcon() {
-    BitmapDescriptor.fromAssetImage(
-        const ImageConfiguration(size: Size(10, 10)), "asset/images/addmarker.bmp")
-        .then(
-          (icon) {
-        setState(() {
-          customMarker = icon;
-        });
-      },
-    );
+
+  Future<void> _fetchNearbyBathrooms() async {
+    if (_currentPosition == null) return;
+
+    try {
+      final GeoFirePoint center = GeoFirePoint(
+        GeoPoint(_currentPosition!.latitude, _currentPosition!.longitude),
+      );
+
+      final bathrooms = await bathroomRepo.fetchNearbyBathrooms(
+        center: center,
+        radiusInKm: _searchRadius,
+      );
+
+      setState(() {
+        _bathrooms = bathrooms;
+        _updateMarkers();
+      });
+    } catch (e) {
+      debugPrint("Error fetching nearby bathrooms: $e");
+    }
   }
 
-  void _getBathrooms() async {
-    _bathrooms = await bathroomRepo.getAllBathrooms();
+  void _updateMarkers() {
+    _tagMarkers.clear();
+
     for (Bathroom bathroom in _bathrooms) {
-      _tagMarkers.add(
-        Marker(
-          markerId: MarkerId(bathroom.location.toString()),
-          position: bathroom.location,
-          onTap: () {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text(bathroom.title),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [Text("Directions: ${bathroom.directions}")],
+      if ((bathroom.isVerified && showVerified) ||
+          (!bathroom.isVerified && showUnverified)) {
+        _tagMarkers.add(
+          Marker(
+            markerId: MarkerId(bathroom.id ?? ""),
+            position: bathroom.location,
+            icon: bathroom.isVerified ? verifiedMarkerIcon : unverifiedMarkerIcon,
+            infoWindow: InfoWindow(
+              title: bathroom.title,
+              snippet: bathroom.directions,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BathroomDetails(bathroom: bathroom),
                   ),
-                  actions: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BathroomDetails(bathroom: bathroom),
-                          ),
-                        );
-                      },
-                      child: const Text("See Details"),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ReviewPage(bathroom: bathroom),
-                          ),
-                        );
-                      },
-                      child: const Text("Review"),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text("Close"),
-                    ),
-                  ],
                 );
               },
-            );
-          },
-        ),
-      );
+            ),
+          ),
+        );
+      }
     }
-    Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {}));
+
+    setState(() {});
+  }
+
+  Future<void> _getCurrentPosition() async {
+    final hasPermission = await _handleLocationPermission();
+    if (!hasPermission) return;
+
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      setState(() {
+        _currentPosition = position;
+      });
+
+      _fetchNearbyBathrooms();
+    } catch (e) {
+      debugPrint("Error getting current position: $e");
+    }
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -117,40 +127,33 @@ class _HomePageState extends State<HomePage> {
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Location services are disabled. Please enable the services')));
+        content: Text('Location services are disabled. Please enable the services.'),
+      ));
       return false;
     }
+
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Location permissions are denied')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Location permissions are denied'),
+        ));
         return false;
       }
     }
+
     if (permission == LocationPermission.deniedForever) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              'Location permissions are permanently denied, we cannot request permissions.')));
+        content: Text(
+          'Location permissions are permanently denied, we cannot request permissions.',
+        ),
+      ));
       return false;
     }
+
     return true;
   }
-
-  Future<void> _getCurrentPosition() async {
-    final hasPermission = await _handleLocationPermission();
-    if (!hasPermission) return;
-    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
-        .then((Position position) {
-      setState(() {
-        _currentPosition = position;
-      });
-    }).catchError((e) {
-      debugPrint(e);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_currentPosition == null) {
@@ -165,17 +168,68 @@ class _HomePageState extends State<HomePage> {
     } else {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Bathroom Map', textAlign: TextAlign.center),
+          title: Obx(() {
+            final userController = Get.find<UserController>();
+            final firstName = userController.getFirstName();
+            return Text("Welcome $firstName!");
+          }),
+          centerTitle: true,
           actions: [
+            PopupMenuButton<double>(
+              onSelected: (value) {
+                setState(() {
+                  _searchRadius = value;
+                  _fetchNearbyBathrooms();
+                });
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 0.5,
+                  child: Text("Search within 0.5 km"),
+                ),
+                const PopupMenuItem(
+                  value: 1.0,
+                  child: Text("Search within 1 km"),
+                ),
+                const PopupMenuItem(
+                  value: 5.0,
+                  child: Text("Search within 5 km"),
+                ),
+                const PopupMenuItem(
+                  value: 10.0,
+                  child: Text("Search within 10 km"),
+                ),
+              ],
+              icon: const Icon(Icons.filter_alt),
+            ),
             IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () {
-                FirebaseAuth.instance.signOut();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => LoginPage()),
+              onPressed: () async {
+                await _getCurrentPosition();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Location and bathrooms refreshed!')),
                 );
               },
+              icon: const Icon(Icons.refresh),
+            ),
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == "settings") {
+                  Get.toNamed('/profile');
+                } else if (value == "logout") {
+                  FirebaseAuth.instance.signOut();
+                  Get.offNamed('/login');
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: "settings",
+                  child: Text("Settings"),
+                ),
+                const PopupMenuItem(
+                  value: "logout",
+                  child: Text("Logout"),
+                ),
+              ],
             ),
           ],
         ),
@@ -192,6 +246,37 @@ class _HomePageState extends State<HomePage> {
                 zoom: 15,
               ),
               onTap: _handleTap,
+              myLocationEnabled: true,
+              myLocationButtonEnabled: true,
+            ),
+            Positioned(
+              top: 10,
+              left: 10,
+              child: Row(
+                children: [
+                  FilterChip(
+                    label: const Text("Verified"),
+                    selected: showVerified,
+                    onSelected: (value) {
+                      setState(() {
+                        showVerified = value;
+                        _updateMarkers();
+                      });
+                    },
+                  ),
+                  const SizedBox(width: 10),
+                  FilterChip(
+                    label: const Text("Unverified"),
+                    selected: showUnverified,
+                    onSelected: (value) {
+                      setState(() {
+                        showUnverified = value;
+                        _updateMarkers();
+                      });
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -200,6 +285,8 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
+            const SizedBox(height: 16),
             FloatingActionButton.extended(
               heroTag: 'search',
               onPressed: () {
@@ -235,6 +322,7 @@ class _HomePageState extends State<HomePage> {
               icon: const Icon(Icons.qr_code_scanner),
               label: const Text("Scan QR"),
             ),
+
           ],
         ),
       );
@@ -251,7 +339,7 @@ class _HomePageState extends State<HomePage> {
         Marker(
           markerId: MarkerId(pos.toString()),
           position: pos,
-          icon: customMarker,
+          icon: customMarker ?? newBathroomMarker,
           onTap: () {
             showDialog(
               context: context,

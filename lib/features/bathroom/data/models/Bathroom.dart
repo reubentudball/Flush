@@ -6,6 +6,9 @@ class Bathroom {
   final String title;
   final String directions;
   final LatLng location;
+  final String? geohash;
+  final String? facilityID;
+  final String? ownerID;
   final double? healthScore;
   final bool isVerified;
   final double? cleanlinessScore;
@@ -19,6 +22,9 @@ class Bathroom {
     required this.title,
     required this.directions,
     required this.location,
+    this.geohash,
+    this.facilityID,
+    this.ownerID, // Initialize ownerID
     this.healthScore,
     this.cleanlinessScore,
     this.trafficScore,
@@ -32,7 +38,12 @@ class Bathroom {
     return {
       "title": title,
       "directions": directions,
-      "location": GeoPoint(location.latitude, location.longitude),
+      "geo": {
+        "geopoint": GeoPoint(location.latitude, location.longitude),
+        "geohash": geohash,
+      },
+      "facilityID": facilityID,
+      "ownerID": ownerID,
       "healthScore": healthScore ?? 0.0,
       "cleanlinessScore": cleanlinessScore ?? 0.0,
       "trafficScore": trafficScore ?? 0.0,
@@ -46,14 +57,21 @@ class Bathroom {
   factory Bathroom.fromSnapshot(DocumentSnapshot<Map<String, dynamic>> document) {
     final data = document.data()!;
 
+    final geoData = data["geo"] as Map<String, dynamic>?;
+
     return Bathroom(
       id: document.id,
       title: data["title"] ?? "Unknown Title",
       directions: data["directions"] ?? "No directions provided",
-      location: LatLng(
-        (data["location"] as GeoPoint).latitude,
-        (data["location"] as GeoPoint).longitude,
-      ),
+      location: geoData != null
+          ? LatLng(
+        (geoData["geopoint"] as GeoPoint).latitude,
+        (geoData["geopoint"] as GeoPoint).longitude,
+      )
+          : LatLng(0, 0),
+      geohash: geoData?["geohash"],
+      facilityID: data["facilityID"],
+      ownerID: data["ownerID"],
       healthScore: (data["healthScore"] != null)
           ? (data["healthScore"] as num).toDouble()
           : null,
@@ -74,3 +92,4 @@ class Bathroom {
     );
   }
 }
+

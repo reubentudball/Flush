@@ -38,7 +38,7 @@ class BathroomController extends GetxController {
     return bathrooms.firstWhereOrNull((bathroom) => bathroom.id == id);
   }
 
-  Future<void> addBathroom(Bathroom bathroom) async {
+  Future<void> addBathroom(Bathroom bathroom, ) async {
     try {
       await _repository.createBathroom(bathroom);
       await fetchBathrooms();

@@ -1,19 +1,28 @@
+import 'package:flush/features/auth/controllers/UserController.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
 import 'features/auth/presentation/LoginPage.dart';
 import 'features/auth/presentation/SignUp.dart';
 import 'features/auth/presentation/ForgotPassword.dart';
+import 'features/bathroom/controllers/ReportController.dart';
 import 'features/bathroom/presentation/HomePage.dart';
 import 'core/firebase_options.dart';
 import 'features/bathroom/controllers/BathroomController.dart';
+import 'features/auth/presentation/ProfilePage.dart';
+import 'features/auth/controllers/AuthController.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  Get.put(BathroomController());
+  Get.lazyPut(() => BathroomController());
+  Get.put(AuthController());
+  Get.lazyPut(() => UserController());
+  Get.lazyPut(() => ReportController());
+
+
   runApp(const MyApp());
 }
 
@@ -27,6 +36,26 @@ class MyApp extends StatelessWidget {
       title: 'Flush',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            foregroundColor: Colors.white,
+            backgroundColor: Colors.blue,
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.blue,
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.blue,
+          ),
+        ),
       ),
       initialRoute: '/login',
       getPages: [
@@ -34,6 +63,8 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/sign-up', page: () =>  SignUpPage()),
         GetPage(name: '/forgot-password', page: () =>  ForgotPasswordPage()),
         GetPage(name: '/home', page: () => const HomePage()),
+        GetPage(name: '/profile', page: () => ProfilePage() )
+
       ],
     );
   }

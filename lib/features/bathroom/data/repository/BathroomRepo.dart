@@ -1,20 +1,34 @@
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
 import '../models/Bathroom.dart';
 import '../models/Comment.dart';
 import '../models/Review.dart';
 
+import 'package:geoflutterfire_plus/geoflutterfire_plus.dart';
+
 class BathroomRepository extends GetxService {
   static BathroomRepository get instance => Get.find();
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  final GeoCollectionReference<Map<String, dynamic>> geoCollection =
+  GeoCollectionReference(FirebaseFirestore.instance.collection('Bathroom'));
+
+
   Future<String> createBathroom(Bathroom bathroom) async {
     try {
-      final docRef = await _db.collection("Bathroom").add(bathroom.toJson());
+      final geoFirePoint = GeoFirePoint(
+        GeoPoint(bathroom.location.latitude, bathroom.location.longitude),
+      );
+
+      final bathroomData = bathroom.toJson();
+      bathroomData['geo']['geohash'] = geoFirePoint.geohash;
+
+      final docRef = await _db.collection("Bathroom").add(bathroomData);
       log("Bathroom created with ID: ${docRef.id}");
       return docRef.id;
     } catch (e) {
@@ -22,6 +36,7 @@ class BathroomRepository extends GetxService {
       rethrow;
     }
   }
+
 
   Future<void> createReview(String bathroomId, Review review) async {
     try {
@@ -46,6 +61,97 @@ class BathroomRepository extends GetxService {
     } catch (e) {
       log("Error fetching bathrooms: $e");
       rethrow;
+    }
+  }
+
+  Future<void> testGeoPoints() async {
+    final geoCollection = GeoCollectionReference<Map<String, dynamic>>(
+      FirebaseFirestore.instance.collection('Bathroom'),
+    );
+
+    // Define a test center point (replace with a known location)
+    final GeoFirePoint testCenter = GeoFirePoint(
+      GeoPoint(43.469065, -79.70004), // Replace with coordinates near your data
+    );
+
+    // Fetch all documents within a large radius (e.g., 50 km)
+    try {
+      final documents = await geoCollection.fetchWithin(
+        center: testCenter,
+        radiusInKm: 50.0, // Large radius to ensure results
+        field: 'location',
+        geopointFrom: (data) {
+          // Debug: Log the raw document data
+          debugPrint("Raw data from document: $data");
+
+          if (data.containsKey('location')) {
+            final location = data['location'] as GeoPoint;
+            debugPrint(
+              "Found GeoPoint: latitude=${location.latitude}, longitude=${location.longitude}",
+            );
+            return location;
+          } else {
+            debugPrint("No GeoPoint found in this document.");
+            return GeoPoint(0, 0); // Dummy GeoPoint for missing data
+          }
+        },
+      );
+
+      // Log the number of documents retrieved
+      debugPrint("Total documents retrieved: ${documents.length}");
+      for (var doc in documents) {
+        debugPrint("Document ID: ${doc.id}, Data: ${doc.data()}");
+      }
+    } catch (e, stacktrace) {
+      debugPrint("Error during testGeoPoints: $e");
+      debugPrint("Stacktrace: $stacktrace");
+    }
+  }
+
+
+  Future<List<Bathroom>> fetchNearbyBathrooms({
+    required GeoFirePoint center,
+    required double radiusInKm,
+  }) async {
+    try {
+      debugPrint(
+          "Fetching bathrooms within $radiusInKm km of center: "
+              "latitude: ${center.latitude}, longitude: ${center.longitude}, geohash: ${center.geohash}");
+
+      // Test GeoPoints to ensure documents exist (optional for debugging)
+      await testGeoPoints();
+
+      final snapshots = await geoCollection.fetchWithin(
+        center: center,
+        radiusInKm: radiusInKm,
+        field: 'geo', // Specify the full path to the geopoint
+        geopointFrom: (data) {
+          // Access the geopoint directly
+          if (data['geo'] != null && data['geo']['geopoint'] != null) {
+            final location = data['geo']['geopoint'] as GeoPoint;
+            debugPrint(
+                "Processing GeoPoint: latitude=${location.latitude}, longitude=${location.longitude}");
+            return location;
+          } else {
+            debugPrint("Geo field is missing or invalid in this document.");
+            return GeoPoint(0, 0); // Fallback for missing geopoint
+          }
+        },
+      );
+
+      debugPrint("Fetched ${snapshots.length} documents from Firestore.");
+
+      final bathrooms = snapshots.map((doc) {
+        debugPrint("Document ID: ${doc.id}");
+        return Bathroom.fromSnapshot(doc);
+      }).toList();
+
+      debugPrint("Converted documents to Bathroom objects: ${bathrooms.length}");
+      return bathrooms;
+    } catch (e, stacktrace) {
+      debugPrint("Error fetching nearby bathrooms: $e");
+      debugPrint("Stacktrace: $stacktrace");
+      return [];
     }
   }
 

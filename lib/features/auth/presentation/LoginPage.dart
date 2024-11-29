@@ -2,12 +2,58 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/AuthController.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  LoginPage({super.key});
+
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthController _authController = Get.put(AuthController());
 
-  LoginPage({super.key});
+  bool _rememberMe = false;
+
+  bool _isValidEmail(String email) {
+    final emailRegex = RegExp(
+        r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+    return emailRegex.hasMatch(email);
+  }
+
+  void _handleLogin(BuildContext context) {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      Get.snackbar(
+        "Error",
+        "Both fields are required.",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    if (!_isValidEmail(email)) {
+      Get.snackbar(
+        "Error",
+        "Please enter a valid email address.",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    _authController.signIn(email, password, rememberMe: _rememberMe);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _authController.autoLogin(); // Attempt auto-login on app start
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,14 +89,22 @@ class LoginPage extends StatelessWidget {
                   decoration: const InputDecoration(labelText: 'Password'),
                   obscureText: true,
                 ),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _rememberMe,
+                      onChanged: (value) {
+                        setState(() {
+                          _rememberMe = value!;
+                        });
+                      },
+                    ),
+                    const Text('Remember Me'),
+                  ],
+                ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () {
-                    _authController.signIn(
-                      _emailController.text,
-                      _passwordController.text,
-                    );
-                  },
+                  onPressed: () => _handleLogin(context),
                   child: const Text('Login'),
                 ),
                 if (_authController.errorMessage.isNotEmpty)
@@ -81,3 +135,4 @@ class LoginPage extends StatelessWidget {
     );
   }
 }
+
