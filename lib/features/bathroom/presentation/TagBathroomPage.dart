@@ -8,10 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../data/models/Bathroom.dart';
 
-const List<String> listCleanliness = <String> ['Very Clean','Clean','Messy','Very Messy'];
-const List<String> listTraffic = <String> ['High','Moderate','Low','None'];
-const List<String> listSize = <String> ['Single-Use','2-4','5-7','More than 7'];
-const List<String> listAccessibility = <String> ['Yes','No'];
+
 class TagBathroomPage extends StatefulWidget {
   final LatLng location;
 

@@ -40,7 +40,7 @@ class _SearchPageState extends State<SearchPage> {
       } else if (selectedSort == 'Most Quiet') {
         bathrooms.sort((a, b) => b.trafficScore!.compareTo(a.trafficScore!));
       } else if (selectedSort == 'Most Accessible') {
-        bathrooms.sort((a, b) => b.accessibilityScore!.compareTo(a.accessibilityScore!));
+        bathrooms.sort((a, b) => b.sizeScore!.compareTo(a.sizeScore!));
       }
     });
   }

@@ -13,7 +13,7 @@ class Bathroom {
   final bool isVerified;
   final double? cleanlinessScore;
   final double? trafficScore;
-  final double? accessibilityScore;
+  final double? sizeScore;
   final CollectionReference? reviews;
   final List<dynamic>? comments;
   final DateTime? updatedAt;
@@ -29,7 +29,7 @@ class Bathroom {
     this.healthScore,
     this.cleanlinessScore,
     this.trafficScore,
-    this.accessibilityScore,
+    this.sizeScore,
     this.isVerified = false,
     this.reviews,
     this.comments,
@@ -49,7 +49,7 @@ class Bathroom {
       "healthScore": healthScore ?? 0.0,
       "cleanlinessScore": cleanlinessScore ?? 0.0,
       "trafficScore": trafficScore ?? 0.0,
-      "accessibilityScore": accessibilityScore ?? 0.0,
+      "sizeScore": sizeScore ?? 0.0,
       "isVerified": isVerified,
       "reviews": reviews,
       "comments": comments ?? [],
@@ -84,8 +84,8 @@ class Bathroom {
       trafficScore: (data["trafficScore"] != null)
           ? (data["trafficScore"] as num).toDouble()
           : null,
-      accessibilityScore: (data["accessibilityScore"] != null)
-          ? (data["accessibilityScore"] as num).toDouble()
+      sizeScore: (data["sizeScore"] != null)
+          ? (data["sizeScore"] as num).toDouble()
           : null,
       isVerified: data["isVerified"] ?? false,
       reviews: data["reviews"] != null

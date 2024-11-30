@@ -138,10 +138,10 @@ class _HomePageState extends State<HomePage> {
           _currentPosition!.latitude,
           _currentPosition!.longitude,
         ),
-        radius: _searchRadius * 1000, // Convert km to meters
-        fillColor: Colors.blue.withOpacity(0.2), // Light blue with transparency
-        strokeColor: Colors.blue, // Border color
-        strokeWidth: 2, // Border width
+        radius: _searchRadius * 1000,
+        fillColor: Colors.blue.withOpacity(0.2),
+        strokeColor: Colors.blue,
+        strokeWidth: 2,
       ),
     );
 

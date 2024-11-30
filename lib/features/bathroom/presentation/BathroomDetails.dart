@@ -11,8 +11,8 @@ import 'package:flush/features/bathroom/presentation/HomePage.dart';
 import 'package:flush/features/bathroom/presentation/ReviewList.dart';
 import 'package:get/get.dart';
 import 'QrCodeGenerator.dart';
-import '../data/repository/BathroomRepo.dart';
 import 'ReviewPage.dart';
+import '../../../core/constants.dart';
 
 class BathroomDetails extends StatefulWidget {
   final Bathroom bathroom;
@@ -52,6 +52,30 @@ class _BathroomDetailsState extends State<BathroomDetails> {
     }
   }
 
+  List<Widget> buildStarIcons(double score) {
+    int fullStars = score.floor();
+    double fractionalStar = score - fullStars;
+    int emptyStars = 5 - fullStars - (fractionalStar > 0 ? 1 : 0);
+
+    return [
+      for (int i = 0; i < fullStars; i++)
+        const Icon(Icons.star, color: Colors.amber, size: 20),
+      if (fractionalStar > 0)
+        const Icon(Icons.star_half, color: Colors.amber, size: 20),
+      for (int i = 0; i < emptyStars; i++)
+        const Icon(Icons.star_border, color: Colors.amber, size: 20),
+    ];
+  }
+
+
+
+  Color getHealthScoreColor(double healthScore) {
+    final int red = ((100 - healthScore) * 2.55).clamp(0, 255).toInt();
+    final int green = (healthScore * 2.55).clamp(0, 255).toInt();
+    return Color.fromARGB(255, red, green, 0);
+  }
+
+
   void _reportIssue() {
     final TextEditingController descriptionController = TextEditingController();
     String? selectedCategory = _reportController.reportCategories.first;
@@ -62,7 +86,10 @@ class _BathroomDetailsState extends State<BathroomDetails> {
       builder: (BuildContext context) {
         return Padding(
           padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom, top: 16),
+              bottom: MediaQuery
+                  .of(context)
+                  .viewInsets
+                  .bottom, top: 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -74,15 +101,17 @@ class _BathroomDetailsState extends State<BathroomDetails> {
               DropdownButtonFormField<String>(
                 value: selectedCategory,
                 items: _reportController.reportCategories
-                    .map((category) => DropdownMenuItem(
-                  value: category,
-                  child: Text(category),
-                ))
+                    .map((category) =>
+                    DropdownMenuItem(
+                      value: category,
+                      child: Text(category),
+                    ))
                     .toList(),
                 onChanged: (value) {
                   selectedCategory = value;
                 },
-                decoration: const InputDecoration(labelText: "Select a Category"),
+                decoration: const InputDecoration(
+                    labelText: "Select a Category"),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -101,7 +130,8 @@ class _BathroomDetailsState extends State<BathroomDetails> {
                         selectedCategory!, descriptionController.text.trim());
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please select a category.')),
+                      const SnackBar(
+                          content: Text('Please select a category.')),
                     );
                   }
                 },
@@ -137,8 +167,9 @@ class _BathroomDetailsState extends State<BathroomDetails> {
 
   void _editBathroom() {
     Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => EditBathroomPage(bathroom: widget.bathroom))
+        context,
+        MaterialPageRoute(
+            builder: (context) => EditBathroomPage(bathroom: widget.bathroom))
     );
   }
 
@@ -160,7 +191,6 @@ class _BathroomDetailsState extends State<BathroomDetails> {
             ),
             ElevatedButton(
               onPressed: () {
-
                 Navigator.of(context).pop(true);
               },
               child: const Text("Delete"),
@@ -203,18 +233,20 @@ class _BathroomDetailsState extends State<BathroomDetails> {
                   _deleteBathroom();
                 }
               },
-              itemBuilder: (context) => [
+              itemBuilder: (context) =>
+              [
                 const PopupMenuItem(value: 'Edit', child: Text('Edit')),
                 const PopupMenuItem(value: 'Delete', child: Text('Delete')),
               ],
             )
-          else if (widget.bathroom.isVerified &&
-              widget.bathroom.facilityID != null)
-            IconButton(
-              icon: const Icon(Icons.report_problem),
-              tooltip: "Report a Problem",
-              onPressed: _reportIssue,
-            ),
+          else
+            if (widget.bathroom.isVerified &&
+                widget.bathroom.facilityID != null)
+              IconButton(
+                icon: const Icon(Icons.report_problem),
+                tooltip: "Report a Problem",
+                onPressed: _reportIssue,
+              ),
         ],
       ),
       body: SingleChildScrollView(
@@ -240,7 +272,6 @@ class _BathroomDetailsState extends State<BathroomDetails> {
               ),
             ),
 
-            // Precomputed Scores from Firestore
             Card(
               elevation: 5,
               child: Padding(
@@ -248,28 +279,35 @@ class _BathroomDetailsState extends State<BathroomDetails> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    widget.bathroom.healthScore == 0 ?
+                        Text("Health Score: N/A",
+                          style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        )) :
                     Text(
-                      "Health Score: ${widget.bathroom.healthScore?.toStringAsFixed(2) ?? 'N/A'}",
-                      style: const TextStyle(
+                      "Health Score: ${widget.bathroom.healthScore
+                          ?.toStringAsFixed(2) ?? 'N/A'}",
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green,
+                        color: widget.bathroom.healthScore != null
+                            ? getHealthScoreColor(widget.bathroom.healthScore!)
+                            : Colors.grey, // Fallback for N/A
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _buildDetailRow(
-                      "Cleanliness Score",
-                      widget.bathroom.cleanlinessScore?.toStringAsFixed(2) ??
-                          "N/A",
+                    buildDetailRowWithStars(
+                      "Cleanliness",
+                      widget.bathroom.cleanlinessScore, ReviewConstants.cleanlinessDescriptions
                     ),
-                    _buildDetailRow(
-                      "Traffic Score",
-                      widget.bathroom.trafficScore?.toStringAsFixed(2) ?? "N/A",
+                    buildDetailRowWithStars(
+                      "Traffic",
+                      widget.bathroom.trafficScore, ReviewConstants.trafficDescriptions
                     ),
-                    _buildDetailRow(
-                      "Accessibility Score",
-                      widget.bathroom.accessibilityScore?.toStringAsFixed(2) ??
-                          "N/A",
+                    buildDetailRowWithStars(
+                      "Size",
+                      widget.bathroom.sizeScore, ReviewConstants.sizeDescriptions
                     ),
                   ],
                 ),
@@ -304,7 +342,8 @@ class _BathroomDetailsState extends State<BathroomDetails> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ReviewList(bathroomId: widget.bathroom.id!),
+                        builder: (_) =>
+                            ReviewList(bathroomId: widget.bathroom.id!),
                       ),
                     );
                   },
@@ -387,4 +426,51 @@ class _BathroomDetailsState extends State<BathroomDetails> {
       ),
     );
   }
+  Widget buildDetailRowWithStars(String title, double? score, List<String> descriptions) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Flexible(
+            flex: 2,
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Flexible(
+            flex: 3,
+            child: score != null && score > 0
+                ? Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: buildStarIcons(score),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  descriptions[(score - 1).clamp(0, descriptions.length - 1).toInt()],
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            )
+                : const Text(
+              "N/A",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
 }

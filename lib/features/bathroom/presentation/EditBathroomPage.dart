@@ -46,7 +46,7 @@ class _EditBathroomPageState extends State<EditBathroomPage> {
         healthScore: widget.bathroom.healthScore,
         cleanlinessScore: widget.bathroom.cleanlinessScore,
         trafficScore: widget.bathroom.trafficScore,
-        accessibilityScore: widget.bathroom.accessibilityScore,
+        sizeScore: widget.bathroom.sizeScore,
         isVerified: widget.bathroom.isVerified,
         geohash: widget.bathroom.geohash,
         facilityID: widget.bathroom.facilityID,
