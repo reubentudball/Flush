@@ -10,7 +10,6 @@ import 'package:flush/features/bathroom/presentation/CommentPage.dart';
 import 'package:flush/features/bathroom/presentation/HomePage.dart';
 import 'package:flush/features/bathroom/presentation/ReviewList.dart';
 import 'package:get/get.dart';
-
 import '../data/repository/BathroomRepo.dart';
 import 'ReviewPage.dart';
 
@@ -26,7 +25,6 @@ class BathroomDetails extends StatefulWidget {
 class _BathroomDetailsState extends State<BathroomDetails> {
   final ReportController _reportController = Get.find<ReportController>();
   String? facilityName;
-
   @override
   void initState() {
     super.initState();
@@ -34,7 +32,6 @@ class _BathroomDetailsState extends State<BathroomDetails> {
       _fetchFacilityName();
     }
   }
-
   Future<void> _fetchFacilityName() async {
     try {
       final facilityRef = FirebaseFirestore.instance
