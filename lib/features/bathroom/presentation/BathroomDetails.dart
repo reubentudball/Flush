@@ -263,10 +263,58 @@ class _BathroomDetailsState extends State<BathroomDetails> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildDetailRow("Title", widget.bathroom.title),
-                    _buildDetailRow("Directions", widget.bathroom.directions),
+                    // Title
+                    Center(
+                      child: Text(
+                        widget.bathroom.title,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      "Directions:",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: Text(
+                        widget.bathroom.directions,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                          height: 1.5, // Line height for better readability
+                        ),
+                      ),
+                    ),
+
                     if (widget.bathroom.isVerified && facilityName != null)
-                      _buildDetailRow("Facility", facilityName!),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16.0),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.location_city, size: 18, color: Colors.grey),
+                            const SizedBox(width: 8),
+                            Text(
+                              facilityName!,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -279,40 +327,74 @@ class _BathroomDetailsState extends State<BathroomDetails> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    widget.bathroom.healthScore == 0 ?
-                        Text("Health Score: N/A",
-                          style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        )) :
-                    Text(
-                      "Health Score: ${widget.bathroom.healthScore
-                          ?.toStringAsFixed(2) ?? 'N/A'}",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: widget.bathroom.healthScore != null
-                            ? getHealthScoreColor(widget.bathroom.healthScore!)
-                            : Colors.grey, // Fallback for N/A
-                      ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            widget.bathroom.healthScore == 0
+                                ? "Health Score: N/A"
+                                : "Health Score: ${widget.bathroom.healthScore?.toStringAsFixed(2) ?? 'N/A'}",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: widget.bathroom.healthScore != null
+                                  ? getHealthScoreColor(widget.bathroom.healthScore!)
+                                  : Colors.grey, // Fallback for N/A
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.info_outline, color: Colors.grey),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text("Health Score Explanation"),
+                                  content: const Text(
+                                    "The health score is calculated based on:\n\n"
+                                        "- Cleanliness: Weighted at 75%\n"
+                                        "- Review Sentiments: Weighted at 25%\n\n"
+                                        "The score ranges from 0 (Poor) to 100 (Excellent), combining user feedback and cleanliness ratings to provide an overall score.",
+                                    style: TextStyle(fontSize: 16, height: 1.5),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text("Close"),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     buildDetailRowWithStars(
                       "Cleanliness",
-                      widget.bathroom.cleanlinessScore, ReviewConstants.cleanlinessDescriptions
+                      widget.bathroom.cleanlinessScore,
+                      ReviewConstants.cleanlinessDescriptions,
                     ),
                     buildDetailRowWithStars(
                       "Traffic",
-                      widget.bathroom.trafficScore, ReviewConstants.trafficDescriptions
+                      widget.bathroom.trafficScore,
+                      ReviewConstants.trafficDescriptions,
                     ),
                     buildDetailRowWithStars(
                       "Size",
-                      widget.bathroom.sizeScore, ReviewConstants.sizeDescriptions
+                      widget.bathroom.sizeScore,
+                      ReviewConstants.sizeDescriptions,
                     ),
                   ],
                 ),
               ),
             ),
+
 
             const SizedBox(height: 16.0),
 
@@ -405,27 +487,7 @@ class _BathroomDetailsState extends State<BathroomDetails> {
     );
   }
 
-  Widget _buildDetailRow(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-          ),
-          Flexible(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
   Widget buildDetailRowWithStars(String title, double? score, List<String> descriptions) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
