@@ -222,7 +222,19 @@ class _BathroomDetailsState extends State<BathroomDetails> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Bathroom Details"),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Text("Bathroom Details"),
+          ],
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.map),
+          tooltip: "Map",
+          onPressed: () {
+            Get.offAllNamed('/home');
+          },
+        ),
         actions: [
           if (isOwner)
             PopupMenuButton<String>(
@@ -233,20 +245,17 @@ class _BathroomDetailsState extends State<BathroomDetails> {
                   _deleteBathroom();
                 }
               },
-              itemBuilder: (context) =>
-              [
+              itemBuilder: (context) => [
                 const PopupMenuItem(value: 'Edit', child: Text('Edit')),
                 const PopupMenuItem(value: 'Delete', child: Text('Delete')),
               ],
             )
-          else
-            if (widget.bathroom.isVerified &&
-                widget.bathroom.facilityID != null)
-              IconButton(
-                icon: const Icon(Icons.report_problem),
-                tooltip: "Report a Problem",
-                onPressed: _reportIssue,
-              ),
+          else if (widget.bathroom.isVerified && widget.bathroom.facilityID != null)
+            IconButton(
+              icon: const Icon(Icons.report_problem),
+              tooltip: "Report a Problem",
+              onPressed: _reportIssue,
+            ),
         ],
       ),
       body: SingleChildScrollView(
@@ -254,7 +263,6 @@ class _BathroomDetailsState extends State<BathroomDetails> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Basic Bathroom Information
             Card(
               margin: const EdgeInsets.only(bottom: 16.0),
               elevation: 5,
@@ -263,7 +271,6 @@ class _BathroomDetailsState extends State<BathroomDetails> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title
                     Center(
                       child: Text(
                         widget.bathroom.title,
@@ -275,7 +282,6 @@ class _BathroomDetailsState extends State<BathroomDetails> {
                       ),
                     ),
                     const SizedBox(height: 16),
-
                     const Text(
                       "Directions:",
                       style: TextStyle(
@@ -284,7 +290,6 @@ class _BathroomDetailsState extends State<BathroomDetails> {
                         color: Colors.black87,
                       ),
                     ),
-
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: Text(
@@ -292,11 +297,10 @@ class _BathroomDetailsState extends State<BathroomDetails> {
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.grey,
-                          height: 1.5, // Line height for better readability
+                          height: 1.5,
                         ),
                       ),
                     ),
-
                     if (widget.bathroom.isVerified && facilityName != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 16.0),
@@ -322,6 +326,7 @@ class _BathroomDetailsState extends State<BathroomDetails> {
 
             Card(
               elevation: 5,
+              margin: const EdgeInsets.only(bottom: 16.0),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -340,7 +345,7 @@ class _BathroomDetailsState extends State<BathroomDetails> {
                               fontWeight: FontWeight.bold,
                               color: widget.bathroom.healthScore != null
                                   ? getHealthScoreColor(widget.bathroom.healthScore!)
-                                  : Colors.grey, // Fallback for N/A
+                                  : Colors.grey,
                             ),
                           ),
                         ),
@@ -390,101 +395,102 @@ class _BathroomDetailsState extends State<BathroomDetails> {
                       widget.bathroom.sizeScore,
                       ReviewConstants.sizeDescriptions,
                     ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.green,
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ReviewPage(bathroom: widget.bathroom),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.rate_review),
+                          label: const Text('Leave Review'),
+                        ),
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.blue,
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    ReviewList(bathroomId: widget.bathroom.id!),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.reviews),
+                          label: const Text("Reviews"),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.purple,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  CommentPage(bathroom: widget.bathroom),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.comment),
+                        label: const Text("Comments"),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
 
-
-            const SizedBox(height: 16.0),
-
-            // Navigation Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.black,
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const HomePage()),
-                    );
-                  },
-                  child: const Text('Home'),
+            // Create QR Code at Bottom
+            Align(
+              alignment: Alignment.center,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.orange,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.black,
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            ReviewList(bathroomId: widget.bathroom.id!),
-                      ),
-                    );
-                  },
-                  child: const Text("All Reviews"),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => CommentPage(bathroom: widget.bathroom),
-                      ),
-                    );
-                  },
-                  child: const Text("See Comments"),
-                ),
-              ],
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          QrCodeGenerator(bathroomId: widget.bathroom.id!),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.qr_code),
+                label: const Text('Create QR Code'),
+              ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            ReviewPage(bathroom: widget.bathroom),
-                      ),
-                    );
-                  },
-                  child: const Text('Leave a Review'),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            QrCodeGenerator(bathroomId: widget.bathroom.id!),
-                      ),
-                    );
-                  },
-                  child: const Text('Create Qr Code'),
-                ),
-              ],
-            )
           ],
         ),
       ),
     );
+
+
+
+
   }
 
 
