@@ -1,86 +1,53 @@
-import 'dart:developer';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flush/features/bathroom/data/models/Comment.dart';
 import 'package:flutter/material.dart';
-import '../data/models/Bathroom.dart';
-import '../data/repository/BathroomRepo.dart';
 import 'package:get/get.dart';
-import '../../../core/services/Services.dart';
+import '../../auth/controllers/UserController.dart';
+import '../controllers/BathroomController.dart';
+import '../data/models/Comment.dart';
 
 class CommentPage extends StatefulWidget {
-  final Bathroom bathroom;
+  final String bathroomId;
 
-  const CommentPage({super.key, required this.bathroom});
+  const CommentPage({super.key, required this.bathroomId});
 
   @override
   _CommentPageState createState() => _CommentPageState();
 }
 
 class _CommentPageState extends State<CommentPage> {
-  late Bathroom bathroom;
-  final bathroomRepo = Get.put(BathroomRepository());
+  final BathroomController _bathroomController = Get.find<BathroomController>();
+  final UserController _userController = Get.find<UserController>();
   late Future<List<Comment>> commentsFuture;
-
   final TextEditingController _commentController = TextEditingController();
-
-  void _addComment() async {
-    if (_commentController.text.isNotEmpty) {
-      try {
-        final newComment = Comment(
-          processed: false,
-          reviewText: _commentController.text,
-          sentimentScore: 0.0,
-        );
-
-        final newCommentMap = newComment.toMap();
-
-        await FirebaseFirestore.instance
-            .collection('Bathroom')
-            .doc(bathroom.id!)
-            .update({
-          'comments': FieldValue.arrayUnion([newCommentMap]),
-        });
-
-        setState(() {
-          _commentController.clear();
-          commentsFuture = fetchComments(bathroom.id!);
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Comment added successfully.')),
-        );
-      } catch (e) {
-        log('Error adding comment: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to add comment. Please try again.')),
-        );
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Comment cannot be empty.')),
-      );
-    }
-  }
 
   @override
   void initState() {
     super.initState();
-    bathroom = widget.bathroom;
-    if (bathroom.id != null) {
-      commentsFuture = fetchComments(bathroom.id!);
-    } else {
-      commentsFuture = Future.error('Bathroom ID is null');
-    }
-
-    log("Bathroom ID: ${bathroom.id!}");
-    log("Bathroom Comments: ${bathroom.comments!}");
+    commentsFuture = _bathroomController.fetchComments(widget.bathroomId);
   }
 
-  @override
-  void dispose() {
-    _commentController.dispose();
-    super.dispose();
+  void _addComment() async {
+    if (_commentController.text.trim().isNotEmpty) {
+      final userId = _userController.firebaseUser.value?.uid ?? 'GuestID';
+      final newComment = Comment(
+        processed: false,
+        reviewText: _commentController.text.trim(),
+        sentimentScore: 0.0,
+        userID: userId,
+      );
+
+      await _bathroomController.addComment(widget.bathroomId, newComment);
+
+      setState(() {
+        _commentController.clear();
+        commentsFuture = _bathroomController.fetchComments(widget.bathroomId);
+      });
+
+      Get.snackbar('Success', 'Comment added successfully.',
+          snackPosition: SnackPosition.BOTTOM);
+    } else {
+      Get.snackbar('Error', 'Comment cannot be empty.',
+          snackPosition: SnackPosition.BOTTOM);
+    }
   }
 
   @override
@@ -88,29 +55,94 @@ class _CommentPageState extends State<CommentPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Comments"),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Column(
         children: [
+          // Comments Section
           Expanded(
             child: FutureBuilder<List<Comment>>(
               future: commentsFuture,
               builder: (context, snapshot) {
-                final comments = snapshot.data ?? [];
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                      child: Text(
+                        "Failed to load comments: ${snapshot.error}",
+                        style: const TextStyle(color: Colors.red),
+                      ));
+                }
 
-                return comments.isEmpty
-                    ? const Center(child: Text('No comments available.'))
-                    : ListView.builder(
+                final comments = snapshot.data ?? [];
+                if (comments.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'No comments available.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
                   itemCount: comments.length,
                   itemBuilder: (context, index) {
                     final comment = comments[index];
-                    return ListTile(
-                      title: Text(comment.reviewText),
+
+                    return FutureBuilder<String>(
+                      future: _userController.getUserName(comment.userID),
+                      builder: (context, userSnapshot) {
+                        final userName = userSnapshot.data ?? 'Unknown User';
+                        return Card(
+                          elevation: 2,
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.blue,
+                              child: Text(
+                                userName.isNotEmpty
+                                    ? userName[0].toUpperCase()
+                                    : '?',
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            title: Text(
+                              comment.reviewText,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            subtitle: Text(
+                              'By $userName',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     );
                   },
                 );
               },
             ),
           ),
+
+          // Comment Input Section
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextFormField(

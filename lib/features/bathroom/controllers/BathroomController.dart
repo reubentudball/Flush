@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../data/models/Bathroom.dart';
+import '../data/models/Comment.dart';
 import '../data/models/Review.dart';
 import '../data/repository/BathroomRepo.dart';
 
@@ -98,6 +99,33 @@ class BathroomController extends GetxController {
 
     } catch (e) {
       errorMessage('Failed to refresh bathrooms: $e');
+    }
+  }
+
+  Future<void> addComment(String bathroomId, Comment comment) async {
+    try {
+      await _repository.addComment(bathroomId, comment);
+
+      // Update local comments
+      final bathroom = getBathroomById(bathroomId);
+      if (bathroom != null) {
+        bathroom.comments?.add(comment);
+        bathrooms.refresh();
+      }
+
+      Get.snackbar('Success', 'Comment added successfully.');
+    } catch (e) {
+      errorMessage('Failed to add comment: $e');
+      Get.snackbar('Error', 'Failed to add comment: $e');
+    }
+  }
+
+  Future<List<Comment>> fetchComments(String bathroomId) async {
+    try {
+      return await _repository.getBathroomComments(bathroomId);
+    } catch (e) {
+      errorMessage('Failed to fetch comments: $e');
+      return [];
     }
   }
 

@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import '../data/models/Bathroom.dart';
 import '../data/repository/BathroomRepo.dart';
 
-const List<String> sortBy = <String>['Nearest', 'Most Clean', 'Most Quiet', 'Most Accessible'];
+const List<String> sortBy = <String>['Nearest', 'Most Clean', 'Most Quiet', 'Most Spacious'];
 
 class SearchPage extends StatefulWidget {
   final Position currentPosition;
@@ -39,7 +39,7 @@ class _SearchPageState extends State<SearchPage> {
         bathrooms.sort((a, b) => b.cleanlinessScore!.compareTo(a.cleanlinessScore!));
       } else if (selectedSort == 'Most Quiet') {
         bathrooms.sort((a, b) => b.trafficScore!.compareTo(a.trafficScore!));
-      } else if (selectedSort == 'Most Accessible') {
+      } else if (selectedSort == 'Most Spacious') {
         bathrooms.sort((a, b) => b.sizeScore!.compareTo(a.sizeScore!));
       }
     });

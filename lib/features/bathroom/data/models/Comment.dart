@@ -1,36 +1,31 @@
+class Comment {
+  bool processed;
+  String reviewText;
+  double sentimentScore;
+  String userID;
 
-
-
-class Comment{
-  bool processed = false;
-  String reviewText = "";
-  double sentimentScore = 0.0;
-
-  Comment({required this.processed, required this.reviewText, required this.sentimentScore});
-  Comment.create({required this.processed, required this.reviewText, required this.sentimentScore});
-
-
-
+  Comment({
+    required this.processed,
+    required this.reviewText,
+    required this.sentimentScore,
+    required this.userID,
+  });
 
   Map<String, dynamic> toMap() {
     return {
       "reviewText": reviewText,
       "processed": processed,
       "sentimentScore": sentimentScore,
+      "userID": userID,
     };
-    }
-  factory Comment.fromJson(Map<String, dynamic> json) {
-    return Comment(
-      reviewText: json['reviewText'] ?? '',  // Default value if null
-      processed: json['processed'] ?? false, // Default value if null
-      sentimentScore: (json['sentimentScore'] ?? 0).toDouble(), // Default value if null
-    );
   }
 
-
-
+  factory Comment.fromJson(Map<String, dynamic> json) {
+    return Comment(
+      reviewText: json['reviewText'] ?? '',
+      processed: json['processed'] ?? false,
+      sentimentScore: (json['sentimentScore'] ?? 0).toDouble(),
+      userID: json['userID'] ?? 'UnknownUserID',
+    );
+  }
 }
-
-/*
-
-   */

@@ -166,16 +166,26 @@ class BathroomRepository extends GetxService {
     }
   }
 
+  Future<void> addComment(String bathroomId, Comment comment) async {
+    try {
+      final commentMap = comment.toMap();
+      await _db.collection("Bathroom").doc(bathroomId).update({
+        'comments': FieldValue.arrayUnion([commentMap]),
+      });
+      log("Comment added to bathroom: $bathroomId");
+    } catch (e) {
+      log("Error adding comment to bathroom $bathroomId: $e");
+      rethrow;
+    }
+  }
 
   Future<List<Comment>> getBathroomComments(String bathroomId) async {
     try {
-      final snapshot =
-      await _db.collection("Bathroom").doc(bathroomId).get();
+      final snapshot = await _db.collection("Bathroom").doc(bathroomId).get();
       if (snapshot.exists) {
         final commentsData =
         List<Map<String, dynamic>>.from(snapshot.data()?['comments'] ?? []);
-        final comments = commentsData.map((data) => Comment.fromJson(data))
-            .toList();
+        final comments = commentsData.map((data) => Comment.fromJson(data)).toList();
         return comments;
       } else {
         log("Bathroom document $bathroomId does not exist");
@@ -186,6 +196,7 @@ class BathroomRepository extends GetxService {
       rethrow;
     }
   }
+
 
   Future<void> updateBathroom(Bathroom bathroom) async {
     try {

@@ -448,7 +448,7 @@ class _BathroomDetailsState extends State<BathroomDetails> {
                             context,
                             MaterialPageRoute(
                               builder: (_) =>
-                                  CommentPage(bathroom: widget.bathroom),
+                                  CommentPage(bathroomId: widget.bathroom.id!),
                             ),
                           );
                         },

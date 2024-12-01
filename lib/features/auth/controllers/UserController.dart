@@ -1,11 +1,10 @@
-import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:get/get.dart';
 import '../data/model/FlushUser.dart';
+import '../data/service/UserService.dart';
 
 class UserController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final UserService _userService = Get.put(UserService());
 
   final Rxn<User> firebaseUser = Rxn<User>();
   final Rxn<FlushUser> flushUser = Rxn<FlushUser>();
@@ -13,8 +12,8 @@ class UserController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    firebaseUser.value = _auth.currentUser;
-    _auth.authStateChanges().listen((user) {
+    firebaseUser.value = _userService.getCurrentUser();
+    _userService.authStateChanges.listen((user) {
       firebaseUser.value = user;
       if (user != null) {
         fetchFlushUser(user.uid);
@@ -26,10 +25,9 @@ class UserController extends GetxController {
 
   Future<void> fetchFlushUser(String uid) async {
     try {
-      final DocumentSnapshot<Map<String, dynamic>> doc =
-      await _firestore.collection("User").doc(uid).get();
-      if (doc.exists) {
-        flushUser.value = FlushUser.fromJson(doc.id, doc.data()!);
+      final userData = await _userService.getFlushUser(uid);
+      if (userData != null) {
+        flushUser.value = userData;
       } else {
         flushUser.value = null;
       }
@@ -40,13 +38,19 @@ class UserController extends GetxController {
   }
 
   String getFirstName() {
-    if (flushUser.value != null) {
-      return flushUser.value!.firstName;
-    }
-    return "Guest";
+    return flushUser.value?.firstName ?? "Guest";
   }
 
   String getDisplayName() {
     return firebaseUser.value?.displayName ?? "Guest";
+  }
+
+  Future<String> getUserName(String userId) async {
+    try {
+      return await _userService.getUserName(userId);
+    } catch (e) {
+      print("Error fetching user name for userId $userId: $e");
+      return "Unknown User";
+    }
   }
 }
