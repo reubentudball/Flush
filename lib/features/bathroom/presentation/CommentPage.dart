@@ -95,12 +95,6 @@ class _CommentPageState extends State<CommentPage> {
             child: FutureBuilder<List<Comment>>(
               future: commentsFuture,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
-
                 final comments = snapshot.data ?? [];
 
                 return comments.isEmpty
@@ -111,12 +105,6 @@ class _CommentPageState extends State<CommentPage> {
                     final comment = comments[index];
                     return ListTile(
                       title: Text(comment.reviewText),
-                      subtitle:
-                      Text('Sentiment Score: ${comment.sentimentScore}'),
-                      trailing: Icon(
-                        comment.processed ? Icons.check : Icons.error,
-                        color: comment.processed ? Colors.green : Colors.red,
-                      ),
                     );
                   },
                 );
