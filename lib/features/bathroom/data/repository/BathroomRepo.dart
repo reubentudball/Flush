@@ -197,6 +197,8 @@ class BathroomRepository extends GetxService {
     }
   }
 
+  
+
 
   Future<void> updateBathroom(Bathroom bathroom) async {
     try {

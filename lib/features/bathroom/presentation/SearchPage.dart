@@ -28,7 +28,7 @@ class _SearchPageState extends State<SearchPage> {
     super.initState();
     currentPosition = widget.currentPosition;
     bathrooms = widget.bathrooms;
-    _sortBathrooms(); // Initial sorting
+    _sortBathrooms();
   }
 
   void _sortBathrooms() {
@@ -62,7 +62,6 @@ class _SearchPageState extends State<SearchPage> {
       ),
       body: Column(
         children: [
-          // Search Bar and Sorting
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -98,7 +97,6 @@ class _SearchPageState extends State<SearchPage> {
               ],
             ),
           ),
-          // Bathroom List
           Expanded(
             child: bathrooms.isEmpty
                 ? const Center(
