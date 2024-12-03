@@ -14,12 +14,16 @@ import 'features/auth/controllers/AuthController.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
   Get.lazyPut(() => BathroomController());
   Get.put(AuthController());
   Get.lazyPut(() => ReportController());
+
 
 
   runApp(const MyApp());
