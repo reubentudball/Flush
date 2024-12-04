@@ -67,70 +67,108 @@ class _LoginPageState extends State<LoginPage> {
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Obx(() {
           return SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 20.0),
-                  child: Center(
-                    child: SizedBox(
-                      width: 200,
-                      height: 150,
-                      child: Image.asset('asset/images/FlushLogo.png'),
-                    ),
+                const SizedBox(height: 40),
+                Center(
+                  child: SizedBox(
+                    width: 150,
+                    height: 150,
+                    child: Image.asset('asset/images/FlushLogo.png'),
                   ),
                 ),
-                if (_authController.isLoading.value) const CircularProgressIndicator(),
-                TextField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                ),
-                TextField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Password'),
-                  obscureText: true,
-                ),
-                Row(
-                  children: [
-                    Checkbox(
-                      value: _rememberMe,
-                      onChanged: (value) {
-                        setState(() {
-                          _rememberMe = value!;
-                        });
-                      },
+                const SizedBox(height: 40),
+                if (_authController.isLoading.value)
+                  const CircularProgressIndicator(),
+                if (!_authController.isLoading.value) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: TextField(
+                      controller: _emailController,
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                      ),
                     ),
-                    const Text('Remember Me'),
-                  ],
-                ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: TextField(
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                      ),
+                      obscureText: true,
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Checkbox(
+                        value: _rememberMe,
+                        onChanged: (value) {
+                          setState(() {
+                            _rememberMe = value!;
+                          });
+                        },
+                      ),
+                      const Text('Remember Me'),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () => _handleLogin(context),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 50, vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      backgroundColor: Colors.blue,
+                    ),
+                    child: const Text(
+                      'Login',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  if (_authController.errorMessage.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10.0),
+                      child: Text(
+                        _authController.errorMessage.value,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  const SizedBox(height: 20),
+                  TextButton(
+                    onPressed: () {
+                      Get.toNamed('/forgot-password');
+                    },
+                    child: const Text(
+                      'Forgot Password?',
+                      style: TextStyle(fontSize: 14, color: Colors.blueAccent),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Get.toNamed('/sign-up');
+                    },
+                    child: const Text(
+                      'Sign Up',
+                      style: TextStyle(fontSize: 14, color: Colors.blueAccent),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () => _handleLogin(context),
-                  child: const Text('Login'),
-                ),
-                if (_authController.errorMessage.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10.0),
-                    child: Text(
-                      _authController.errorMessage.value,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ),
-                TextButton(
-                  onPressed: () {
-                    Get.toNamed('/forgot-password');
-                  },
-                  child: const Text('Forgot Password?'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Get.toNamed('/sign-up');
-                  },
-                  child: const Text('Sign Up'),
-                ),
               ],
             ),
           );
