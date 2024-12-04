@@ -26,7 +26,7 @@ class AuthController extends GetxController {
           await _clearCredentials();
         }
 
-        Get.offNamed('/home');
+        Get.offAllNamed('/home');
       }
     } catch (e) {
       errorMessage.value = e.toString();

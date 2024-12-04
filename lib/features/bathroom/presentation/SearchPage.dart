@@ -36,14 +36,15 @@ class _SearchPageState extends State<SearchPage> {
       if (selectedSort == 'Nearest') {
         bathrooms.sort((a, b) => _calculateDistance(a).compareTo(_calculateDistance(b)));
       } else if (selectedSort == 'Most Clean') {
-        bathrooms.sort((a, b) => b.cleanlinessScore!.compareTo(a.cleanlinessScore!));
+        bathrooms.sort((a, b) => (b.cleanlinessScore ?? 0).compareTo(a.cleanlinessScore ?? 0));
       } else if (selectedSort == 'Most Quiet') {
-        bathrooms.sort((a, b) => b.trafficScore!.compareTo(a.trafficScore!));
+        bathrooms.sort((a, b) => (b.trafficScore ?? 0).compareTo(a.trafficScore ?? 0));
       } else if (selectedSort == 'Most Spacious') {
-        bathrooms.sort((a, b) => b.sizeScore!.compareTo(a.sizeScore!));
+        bathrooms.sort((a, b) => (b.sizeScore ?? 0).compareTo(a.sizeScore ?? 0));
       }
     });
   }
+
 
   double _calculateDistance(Bathroom bathroom) {
     return Geolocator.distanceBetween(
