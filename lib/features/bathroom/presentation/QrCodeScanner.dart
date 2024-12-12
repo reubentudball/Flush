@@ -91,7 +91,7 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
     );
   }
 
-  void foundQrCode(capture) {
+  Future<void> foundQrCode(capture) async {
     try {
       final List<Barcode> qrCodeInfo = capture.barcodes;
       final String? rawValue = qrCodeInfo.isNotEmpty ? qrCodeInfo.first.rawValue : null;
@@ -104,10 +104,7 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
         throw Exception("Invalid QR code data.");
       }
 
-      Bathroom? bathroom = bathrooms.firstWhere(
-            (bathroom) => bathroom.id == decodedQrCode['id'],
-        orElse: () => throw Exception("Bathroom not found."),
-      );
+      final bathroom = await bathroomRepo.getBathroomById(decodedQrCode['id']);
 
       showDialog(
         context: context,
@@ -128,7 +125,7 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => ReviewPage(bathroom: bathroom),
+                      builder: (_) => ReviewPage(bathroom: bathroom!),
                     ),
                   );
                 },

@@ -5,6 +5,7 @@ import 'package:geoflutterfire_plus/geoflutterfire_plus.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import '../controllers/FilterController.dart';
 import '../data/models/Bathroom.dart';
 import '../data/repository/BathroomRepo.dart';
 import './SearchPage.dart';
@@ -13,6 +14,7 @@ import './QrCodeScanner.dart';
 import '../../auth/controllers/UserController.dart';
 import '../../auth/controllers/AuthController.dart';
 import '../../../core/constants.dart';
+import 'NavigationMapScreen.dart';
 import 'ReviewPage.dart';
 import  '../../../core/utils/IconHelper.dart';
 
@@ -79,7 +81,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _fetchNearbyBathrooms() async {
     if (_currentPosition == null) return;
-
+    final filterController = Get.find<FilterController>();
     try {
       final GeoFirePoint center = GeoFirePoint(
         GeoPoint(_currentPosition!.latitude, _currentPosition!.longitude),
@@ -87,7 +89,7 @@ class _HomePageState extends State<HomePage> {
 
       final bathrooms = await bathroomRepo.fetchNearbyBathrooms(
         center: center,
-        radiusInKm: _searchRadius,
+        radiusInKm: filterController.searchRadius.value,
       );
 
       setState(() {
@@ -100,6 +102,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _updateSearchRadiusCircle() {
+    final filterController = Get.find<FilterController>();
     if (_currentPosition == null) return;
 
     _circles.clear();
@@ -111,7 +114,7 @@ class _HomePageState extends State<HomePage> {
           _currentPosition!.latitude,
           _currentPosition!.longitude,
         ),
-        radius: _searchRadius * 1000,
+        radius: filterController.searchRadius * 1000,
         fillColor: Colors.blue.withOpacity(0.2),
         strokeColor: Colors.blue,
         strokeWidth: 2,
@@ -123,6 +126,8 @@ class _HomePageState extends State<HomePage> {
 
 
   void _updateMarkersWithFilters({bool fetchNewBathrooms = false}) async {
+    final filterController = Get.find<FilterController>();
+
     if (fetchNewBathrooms && _currentPosition != null) {
       try {
         final GeoFirePoint center = GeoFirePoint(
@@ -131,7 +136,7 @@ class _HomePageState extends State<HomePage> {
 
         _bathrooms = await bathroomRepo.fetchNearbyBathrooms(
           center: center,
-          radiusInKm: _searchRadius,
+          radiusInKm: filterController.searchRadius.value,
         );
         _updateSearchRadiusCircle();
       } catch (e) {
@@ -141,10 +146,12 @@ class _HomePageState extends State<HomePage> {
     }
 
     final filteredBathrooms = _bathrooms.where((bathroom) {
-      final verifiedMatches = (bathroom.isVerified && showVerified) ||
-          (!bathroom.isVerified && showUnverified);
-      final typeMatches = selectedBathroomType == null || bathroom.bathroomType == selectedBathroomType;
-      final accessMatches = selectedAccessType == null || bathroom.accessType == selectedAccessType?.toLowerCase();
+      final verifiedMatches = (bathroom.isVerified && filterController.showVerified.value) ||
+          (!bathroom.isVerified && filterController.showUnverified.value);
+      final typeMatches = filterController.selectedBathroomType.value == null ||
+          bathroom.bathroomType == filterController.selectedBathroomType.value;
+      final accessMatches = filterController.selectedAccessType.value == null ||
+          bathroom.accessType == filterController.selectedAccessType.value?.toLowerCase();
       return verifiedMatches && typeMatches && accessMatches;
     }).toList();
 
@@ -162,6 +169,7 @@ class _HomePageState extends State<HomePage> {
       }
     });
   }
+
 
 
 
@@ -288,6 +296,33 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 16),
 
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch, // Makes buttons fill the width
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => NavigationMapScreen(
+                      currentPosition: LatLng(
+                        _currentPosition!.latitude,
+                        _currentPosition!.longitude,
+                      ),
+                      bathroomLocation: bathroom.location,
+                    )),
+                  );
+                },
+                icon: const Icon(Icons.navigation, size: 20),
+                label: const Text("Navigate"),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  backgroundColor: Colors.orange,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -310,7 +345,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () {
@@ -334,6 +369,9 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
+
+          ],
+          ),
         );
       },
     );
@@ -343,11 +381,7 @@ class _HomePageState extends State<HomePage> {
 
 
   void _showFilterMenu() {
-    bool tempShowVerified = showVerified;
-    bool tempShowUnverified = showUnverified;
-    String? tempSelectedBathroomType = selectedBathroomType;
-    String? tempSelectedAccessType = selectedAccessType;
-    double tempSearchRadius = _searchRadius;
+    final filterController = Get.find<FilterController>();
 
     showDialog(
       context: context,
@@ -365,18 +399,16 @@ class _HomePageState extends State<HomePage> {
                       "Search Radius (km)",
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    Slider(
-                      value: tempSearchRadius,
+                    Obx(() => Slider(
+                      value: filterController.searchRadius.value,
                       min: 0.5,
                       max: 10.0,
                       divisions: 19,
-                      label: "${tempSearchRadius.toStringAsFixed(1)} km",
+                      label: "${filterController.searchRadius.value.toStringAsFixed(1)} km",
                       onChanged: (value) {
-                        setDialogState(() {
-                          tempSearchRadius = value;
-                        });
+                        filterController.searchRadius.value = value;
                       },
-                    ),
+                    )),
                     const SizedBox(height: 16),
                     const Text(
                       "Verified Status",
@@ -384,27 +416,23 @@ class _HomePageState extends State<HomePage> {
                     ),
                     Row(
                       children: [
-                        Checkbox(
-                          value: tempShowVerified,
+                        Obx(() => Checkbox(
+                          value: filterController.showVerified.value,
                           onChanged: (value) {
-                            setDialogState(() {
-                              tempShowVerified = value!;
-                            });
+                            filterController.showVerified.value = value!;
                           },
-                        ),
+                        )),
                         const Text("Verified"),
                       ],
                     ),
                     Row(
                       children: [
-                        Checkbox(
-                          value: tempShowUnverified,
+                        Obx(() => Checkbox(
+                          value: filterController.showUnverified.value,
                           onChanged: (value) {
-                            setDialogState(() {
-                              tempShowUnverified = value!;
-                            });
+                            filterController.showUnverified.value = value!;
                           },
-                        ),
+                        )),
                         const Text("Unverified"),
                       ],
                     ),
@@ -413,8 +441,8 @@ class _HomePageState extends State<HomePage> {
                       "Bathroom Type",
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    DropdownButton<String>(
-                      value: tempSelectedBathroomType,
+                    Obx(() => DropdownButton<String>(
+                      value: filterController.selectedBathroomType.value,
                       hint: const Text("Select Bathroom Type"),
                       items: [
                         const DropdownMenuItem<String>(
@@ -429,18 +457,16 @@ class _HomePageState extends State<HomePage> {
                         }).toList(),
                       ],
                       onChanged: (value) {
-                        setDialogState(() {
-                          tempSelectedBathroomType = value;
-                        });
+                        filterController.selectedBathroomType.value = value;
                       },
-                    ),
+                    )),
                     const SizedBox(height: 16),
                     const Text(
                       "Access Type",
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    DropdownButton<String>(
-                      value: tempSelectedAccessType,
+                    Obx(() => DropdownButton<String>(
+                      value: filterController.selectedAccessType.value,
                       hint: const Text("Select Access Type"),
                       items: [
                         const DropdownMenuItem<String>(
@@ -455,26 +481,16 @@ class _HomePageState extends State<HomePage> {
                         }).toList(),
                       ],
                       onChanged: (value) {
-                        setDialogState(() {
-                          tempSelectedAccessType = value;
-                        });
+                        filterController.selectedAccessType.value = value;
                       },
-                    ),
+                    )),
                   ],
                 ),
               ),
               actions: [
                 TextButton(
                   onPressed: () {
-                    setState(() {
-                      showVerified = tempShowVerified;
-                      showUnverified = tempShowUnverified;
-                      selectedBathroomType = tempSelectedBathroomType;
-                      selectedAccessType = tempSelectedAccessType;
-                      _searchRadius = tempSearchRadius;
-
-                      _updateMarkersWithFilters(fetchNewBathrooms: true);
-                    });
+                    _updateMarkersWithFilters(fetchNewBathrooms: true);
                     Navigator.pop(context);
                   },
                   child: const Text("Apply"),
@@ -492,6 +508,7 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
+
 
 
 
