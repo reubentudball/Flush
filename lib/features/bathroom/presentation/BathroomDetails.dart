@@ -7,12 +7,12 @@ import '../data/models/Bathroom.dart';
 import '../data/models/Report.dart';
 import '../controllers/ReportController.dart';
 import 'package:flush/features/bathroom/presentation/CommentPage.dart';
-import 'package:flush/features/bathroom/presentation/HomePage.dart';
 import 'package:flush/features/bathroom/presentation/ReviewList.dart';
 import 'package:get/get.dart';
 import 'QrCodeGenerator.dart';
 import 'ReviewPage.dart';
 import '../../../core/constants.dart';
+import '../../../core/utils/IconHelper.dart';
 
 class BathroomDetails extends StatefulWidget {
   final Bathroom bathroom;
@@ -26,6 +26,7 @@ class BathroomDetails extends StatefulWidget {
 class _BathroomDetailsState extends State<BathroomDetails> {
   final ReportController _reportController = Get.find<ReportController>();
   String? facilityName;
+
 
   @override
   void initState() {
@@ -66,7 +67,6 @@ class _BathroomDetailsState extends State<BathroomDetails> {
         const Icon(Icons.star_border, color: Colors.amber, size: 20),
     ];
   }
-
 
 
   Color getHealthScoreColor(double healthScore) {
@@ -301,6 +301,54 @@ class _BathroomDetailsState extends State<BathroomDetails> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      padding: const EdgeInsets.all(12.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                IconHelper.getBathroomTypeIcon(widget.bathroom.bathroomType),
+                                size: 28,
+                                color: Colors.blue,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                widget.bathroom.bathroomType,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Icon(
+                                IconHelper.getAccessTypeIcon(widget.bathroom.accessType),
+                                size: 28,
+                                color: Colors.green,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                widget.bathroom.accessType[0].toUpperCase() + widget.bathroom.accessType.substring(1), // lol
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                     if (widget.bathroom.isVerified && facilityName != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 16.0),
@@ -461,7 +509,6 @@ class _BathroomDetailsState extends State<BathroomDetails> {
               ),
             ),
 
-            // Create QR Code at Bottom
             Align(
               alignment: Alignment.center,
               child: ElevatedButton.icon(
@@ -487,11 +534,9 @@ class _BathroomDetailsState extends State<BathroomDetails> {
         ),
       ),
     );
-
-
-
-
   }
+
+
 
 
   Widget buildDetailRowWithStars(String title, double? score, List<String> descriptions) {
