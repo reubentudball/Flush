@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../data/models/Bathroom.dart';
+import '../../../core/constants.dart';
 
 class TagBathroomPage extends StatefulWidget {
   final LatLng location;
@@ -23,6 +24,8 @@ class _TagBathroomPageState extends State<TagBathroomPage> {
 
   String title = "";
   String directions = "";
+  String? selectedBathroomType;
+  String? selectedAccessType;
 
   late LatLng location;
 
@@ -30,6 +33,10 @@ class _TagBathroomPageState extends State<TagBathroomPage> {
   void initState() {
     super.initState();
     location = widget.location;
+  }
+
+  void _pickHoursOfOperation() {
+    // Function to display a dialog for picking hours of operation (optional implementation)
   }
 
   @override
@@ -56,6 +63,7 @@ class _TagBathroomPageState extends State<TagBathroomPage> {
               ),
               const SizedBox(height: 20),
 
+              // Bathroom Name Field
               TextFormField(
                 decoration: const InputDecoration(
                   labelText: "Bathroom Name",
@@ -91,8 +99,65 @@ class _TagBathroomPageState extends State<TagBathroomPage> {
                   directions = value;
                 },
               ),
+              const SizedBox(height: 20),
+
+              // Bathroom Type Dropdown
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: "Bathroom Type",
+                  border: OutlineInputBorder(),
+                ),
+                value: selectedBathroomType,
+                items: BathroomTypeConstants.bathroomTypes.map((type) {
+                  return DropdownMenuItem<String>(
+                    value: type,
+                    child: Text(type),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedBathroomType = value;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select a bathroom type.';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Access Type Dropdown
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: "Access Type",
+                  border: OutlineInputBorder(),
+                ),
+                value: selectedAccessType,
+                items: AccessTypeConstants.accessTypes.map((type) {
+                  return DropdownMenuItem<String>(
+                    value: type,
+                    child: Text(type),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedAccessType = value;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select an access type.';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+
               const SizedBox(height: 30),
 
+              // Submit Button
               Center(
                 child: ElevatedButton(
                   onPressed: () async {
@@ -104,6 +169,8 @@ class _TagBathroomPageState extends State<TagBathroomPage> {
                           directions: directions,
                           location: location,
                           ownerID: user.uid,
+                          bathroomType: selectedBathroomType ?? "Unknown",
+                          accessType: selectedAccessType ?? "Unknown",
                         );
 
                         await _bathroomController.addBathroom(bathroom);

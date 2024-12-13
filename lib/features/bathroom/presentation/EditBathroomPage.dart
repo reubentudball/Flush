@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/BathroomController.dart';
 import '../data/models/Bathroom.dart';
+import '../../../core/constants.dart';
 
 class EditBathroomPage extends StatefulWidget {
   final Bathroom bathroom;
@@ -15,19 +16,34 @@ class EditBathroomPage extends StatefulWidget {
 class _EditBathroomPageState extends State<EditBathroomPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Use GetX to access the BathroomController
   final BathroomController _bathroomController = Get.find<BathroomController>();
 
   late TextEditingController _titleController;
   late TextEditingController _directionsController;
 
+  String? selectedBathroomType;
+  String? selectedAccessType;
+
   @override
   void initState() {
     super.initState();
+
+    if (!BathroomTypeConstants.bathroomTypes.contains(widget.bathroom.bathroomType)) {
+      selectedBathroomType = null;
+    } else {
+      selectedBathroomType = widget.bathroom.bathroomType;
+    }
+
+    if (!AccessTypeConstants.accessTypes.contains(widget.bathroom.accessType)) {
+      selectedAccessType = null;
+    } else {
+      selectedAccessType = widget.bathroom.accessType;
+    }
+
     _titleController = TextEditingController(text: widget.bathroom.title);
-    _directionsController =
-        TextEditingController(text: widget.bathroom.directions);
+    _directionsController = TextEditingController(text: widget.bathroom.directions);
   }
+
 
   @override
   void dispose() {
@@ -53,6 +69,8 @@ class _EditBathroomPageState extends State<EditBathroomPage> {
         ownerID: widget.bathroom.ownerID,
         reviews: widget.bathroom.reviews,
         comments: widget.bathroom.comments,
+        accessType: selectedAccessType!,
+        bathroomType: selectedBathroomType!,
       );
 
       _bathroomController.updateBathroom(updatedBathroom).then((_) {
@@ -84,24 +102,89 @@ class _EditBathroomPageState extends State<EditBathroomPage> {
             children: [
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
+                decoration: const InputDecoration(
+                  labelText: "Bathroom Name",
+                  hintText: "Enter a meaningful name for the bathroom",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.edit, color: Colors.blueAccent),
+                ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Title is required';
+                    return 'Please provide a bathroom name.';
+                  }
+                  if (value.length < 5) {
+                    return 'Bathroom name should be at least 5 characters long.';
                   }
                   return null;
                 },
               ),
+              const SizedBox(height: 20),
+
               TextFormField(
                 controller: _directionsController,
-                decoration: const InputDecoration(labelText: 'Directions'),
+                decoration: const InputDecoration(
+                  labelText: "Directions (Optional)",
+                  hintText: "Provide general directions to locate the bathroom",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.directions, color: Colors.blueAccent),
+                ),
+                maxLines: 5,
+              ),
+              const SizedBox(height: 20),
+
+            DropdownButtonFormField<String>(
+              decoration: const InputDecoration(
+                labelText: "Bathroom Type",
+                border: OutlineInputBorder(),
+              ),
+              value: selectedBathroomType,
+              items: BathroomTypeConstants.bathroomTypes.map((type) {
+                return DropdownMenuItem<String>(
+                  value: type,
+                  child: Text(type),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedBathroomType = value;
+                });
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a bathroom type.';
+                }
+                return null;
+              },
+            ),
+
+              const SizedBox(height: 20),
+
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: "Access Type",
+                  border: OutlineInputBorder(),
+                ),
+                value: selectedAccessType,
+                items: AccessTypeConstants.accessTypes.map((type) {
+                  return DropdownMenuItem<String>(
+                    value: type,
+                    child: Text(type),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedAccessType = value;
+                  });
+                },
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Directions are required';
+                  if (value == null || value.isEmpty) {
+                    return 'Please select an access type.';
                   }
                   return null;
                 },
               ),
+
+              const SizedBox(height: 20),
             ],
           ),
         ),

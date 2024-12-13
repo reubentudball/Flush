@@ -1,17 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flush/features/bathroom/presentation/BathroomDetails.dart';
 import 'package:flutter/material.dart';
 import 'package:geoflutterfire_plus/geoflutterfire_plus.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import '../controllers/FilterController.dart';
 import '../data/models/Bathroom.dart';
 import '../data/repository/BathroomRepo.dart';
 import './SearchPage.dart';
-import './BathroomDetails.dart';
 import './TagBathroomPage.dart';
 import './QrCodeScanner.dart';
 import '../../auth/controllers/UserController.dart';
 import '../../auth/controllers/AuthController.dart';
+import '../../../core/constants.dart';
+import 'NavigationMapScreen.dart';
+import 'ReviewPage.dart';
+import  '../../../core/utils/IconHelper.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -27,12 +32,14 @@ class _HomePageState extends State<HomePage> {
   final bathroomRepo = Get.put(BathroomRepository());
   final userController = Get.put(UserController());
   List<Bathroom> _bathrooms = [];
-  final List<Marker> _tagMarkers = [];
+  final List<Marker> _markers = [];
   final Set<Circle> _circles = {};
   double _searchRadius = 0.5; // Radius in kilometers
   bool isTagging = false;
   bool showVerified = true;
   bool showUnverified = true;
+  String? selectedBathroomType;
+  String? selectedAccessType;
 
   BitmapDescriptor verifiedMarkerIcon =
   BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
@@ -47,6 +54,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _getCurrentPosition() async {
+    isTagging = false;
     final hasPermission = await _handleLocationPermission();
     if (!hasPermission) return;
 
@@ -73,7 +81,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _fetchNearbyBathrooms() async {
     if (_currentPosition == null) return;
-
+    final filterController = Get.find<FilterController>();
     try {
       final GeoFirePoint center = GeoFirePoint(
         GeoPoint(_currentPosition!.latitude, _currentPosition!.longitude),
@@ -81,52 +89,20 @@ class _HomePageState extends State<HomePage> {
 
       final bathrooms = await bathroomRepo.fetchNearbyBathrooms(
         center: center,
-        radiusInKm: _searchRadius,
+        radiusInKm: filterController.searchRadius.value,
       );
 
       setState(() {
         _bathrooms = bathrooms;
-        _updateMarkers();
+        _updateMarkersWithFilters();
       });
     } catch (e) {
       debugPrint("Error fetching nearby bathrooms: $e");
     }
   }
 
-  void _updateMarkers() {
-    _tagMarkers.clear();
-
-    for (Bathroom bathroom in _bathrooms) {
-      if ((bathroom.isVerified && showVerified) ||
-          (!bathroom.isVerified && showUnverified)) {
-        _tagMarkers.add(
-          Marker(
-            markerId: MarkerId(bathroom.id ?? ""),
-            position: bathroom.location,
-            icon: bathroom.isVerified
-                ? verifiedMarkerIcon
-                : unverifiedMarkerIcon,
-            infoWindow: InfoWindow(
-              title: bathroom.title,
-              snippet: bathroom.directions,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BathroomDetails(bathroom: bathroom),
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      }
-    }
-
-    setState(() {});
-  }
-
   void _updateSearchRadiusCircle() {
+    final filterController = Get.find<FilterController>();
     if (_currentPosition == null) return;
 
     _circles.clear();
@@ -138,7 +114,7 @@ class _HomePageState extends State<HomePage> {
           _currentPosition!.latitude,
           _currentPosition!.longitude,
         ),
-        radius: _searchRadius * 1000,
+        radius: filterController.searchRadius * 1000,
         fillColor: Colors.blue.withOpacity(0.2),
         strokeColor: Colors.blue,
         strokeWidth: 2,
@@ -147,6 +123,58 @@ class _HomePageState extends State<HomePage> {
 
     setState(() {});
   }
+
+
+  void _updateMarkersWithFilters({bool fetchNewBathrooms = false}) async {
+    final filterController = Get.find<FilterController>();
+
+    if (fetchNewBathrooms && _currentPosition != null) {
+      try {
+        final GeoFirePoint center = GeoFirePoint(
+          GeoPoint(_currentPosition!.latitude, _currentPosition!.longitude),
+        );
+
+        _bathrooms = await bathroomRepo.fetchNearbyBathrooms(
+          center: center,
+          radiusInKm: filterController.searchRadius.value,
+        );
+        _updateSearchRadiusCircle();
+      } catch (e) {
+        debugPrint("Error fetching bathrooms: $e");
+        return;
+      }
+    }
+
+    final filteredBathrooms = _bathrooms.where((bathroom) {
+      final verifiedMatches = (bathroom.isVerified && filterController.showVerified.value) ||
+          (!bathroom.isVerified && filterController.showUnverified.value);
+      final typeMatches = filterController.selectedBathroomType.value == null ||
+          bathroom.bathroomType == filterController.selectedBathroomType.value;
+      final accessMatches = filterController.selectedAccessType.value == null ||
+          bathroom.accessType == filterController.selectedAccessType.value?.toLowerCase();
+      return verifiedMatches && typeMatches && accessMatches;
+    }).toList();
+
+    setState(() {
+      _markers.clear();
+      for (Bathroom bathroom in filteredBathrooms) {
+        _markers.add(
+          Marker(
+            markerId: MarkerId(bathroom.id ?? ""),
+            position: bathroom.location,
+            icon: bathroom.isVerified ? verifiedMarkerIcon : unverifiedMarkerIcon,
+            onTap: () => _showBathroomDetails(bathroom),
+          ),
+        );
+      }
+    });
+  }
+
+
+
+
+
+
 
   Future<bool> _handleLocationPermission() async {
     bool serviceEnabled;
@@ -183,6 +211,309 @@ class _HomePageState extends State<HomePage> {
     return true;
   }
 
+  void _showBathroomDetails(Bathroom bathroom) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Bathroom Title
+              Text(
+                bathroom.title,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueAccent,
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Bathroom Directions
+              Text(
+                bathroom.directions,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black54,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  Icon(
+                    IconHelper.getBathroomTypeIcon(bathroom.bathroomType),
+                    size: 28,
+                    color: Colors.blue,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    bathroom.bathroomType,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              Row(
+                children: [
+                  Icon(IconHelper.getAccessTypeIcon(bathroom.accessType), size: 28, color: Colors.grey),
+                  const SizedBox(width: 12),
+                  Text(
+                    bathroom.accessType[0].toUpperCase() + bathroom.accessType.substring(1), // Holy shit this is so bad
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              Row(
+                children: [
+                  const Icon(Icons.health_and_safety, size: 28, color: Colors.green),
+                  const SizedBox(width: 12),
+                  Text(
+                    "Health Score: ${bathroom.healthScore?.toStringAsFixed(1) ?? 'N/A'}",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch, // Makes buttons fill the width
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => NavigationMapScreen(
+                      currentPosition: LatLng(
+                        _currentPosition!.latitude,
+                        _currentPosition!.longitude,
+                      ),
+                      bathroomLocation: bathroom.location,
+                    )),
+                  );
+                },
+                icon: const Icon(Icons.navigation, size: 20),
+                label: const Text("Navigate"),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  backgroundColor: Colors.orange,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => BathroomDetails(bathroom: bathroom)),
+                        );
+                      },
+                      icon: const Icon(Icons.info, size: 20),
+                      label: const Text("See Details"),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: Colors.blueAccent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => ReviewPage(bathroom: bathroom)),
+                        );
+                      },
+                      icon: const Icon(Icons.rate_review, size: 20),
+                      label: const Text("Leave Review"),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: Colors.green,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          ],
+          ),
+        );
+      },
+    );
+  }
+
+
+
+
+  void _showFilterMenu() {
+    final filterController = Get.find<FilterController>();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return AlertDialog(
+              title: const Text("Filter Bathrooms"),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Search Radius (km)",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Obx(() => Slider(
+                      value: filterController.searchRadius.value,
+                      min: 0.5,
+                      max: 10.0,
+                      divisions: 19,
+                      label: "${filterController.searchRadius.value.toStringAsFixed(1)} km",
+                      onChanged: (value) {
+                        filterController.searchRadius.value = value;
+                      },
+                    )),
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Verified Status",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Row(
+                      children: [
+                        Obx(() => Checkbox(
+                          value: filterController.showVerified.value,
+                          onChanged: (value) {
+                            filterController.showVerified.value = value!;
+                          },
+                        )),
+                        const Text("Verified"),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Obx(() => Checkbox(
+                          value: filterController.showUnverified.value,
+                          onChanged: (value) {
+                            filterController.showUnverified.value = value!;
+                          },
+                        )),
+                        const Text("Unverified"),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Bathroom Type",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Obx(() => DropdownButton<String>(
+                      value: filterController.selectedBathroomType.value,
+                      hint: const Text("Select Bathroom Type"),
+                      items: [
+                        const DropdownMenuItem<String>(
+                          value: null,
+                          child: Text("Any"),
+                        ),
+                        ...BathroomTypeConstants.bathroomTypes.map((type) {
+                          return DropdownMenuItem<String>(
+                            value: type,
+                            child: Text(type),
+                          );
+                        }).toList(),
+                      ],
+                      onChanged: (value) {
+                        filterController.selectedBathroomType.value = value;
+                      },
+                    )),
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Access Type",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Obx(() => DropdownButton<String>(
+                      value: filterController.selectedAccessType.value,
+                      hint: const Text("Select Access Type"),
+                      items: [
+                        const DropdownMenuItem<String>(
+                          value: null,
+                          child: Text("Any"),
+                        ),
+                        ...AccessTypeConstants.accessTypes.map((type) {
+                          return DropdownMenuItem<String>(
+                            value: type,
+                            child: Text(type),
+                          );
+                        }).toList(),
+                      ],
+                      onChanged: (value) {
+                        filterController.selectedAccessType.value = value;
+                      },
+                    )),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    _updateMarkersWithFilters(fetchNewBathrooms: true);
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Apply"),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Cancel"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+
+
+
+
+
   @override
   Widget build(BuildContext context) {
     if (_currentPosition == null) {
@@ -204,34 +535,6 @@ class _HomePageState extends State<HomePage> {
           }),
           centerTitle: true,
           actions: [
-            PopupMenuButton<double>(
-              onSelected: (value) {
-                setState(() {
-                  _searchRadius = value;
-                  _updateSearchRadiusCircle();
-                  _fetchNearbyBathrooms();
-                });
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 0.5,
-                  child: Text("Search within 0.5 km"),
-                ),
-                const PopupMenuItem(
-                  value: 1.0,
-                  child: Text("Search within 1 km"),
-                ),
-                const PopupMenuItem(
-                  value: 5.0,
-                  child: Text("Search within 5 km"),
-                ),
-                const PopupMenuItem(
-                  value: 10.0,
-                  child: Text("Search within 10 km"),
-                ),
-              ],
-              icon: const Icon(Icons.filter_alt),
-            ),
             IconButton(
               onPressed: () async {
                 await _getCurrentPosition();
@@ -241,6 +544,11 @@ class _HomePageState extends State<HomePage> {
               },
               icon: const Icon(Icons.refresh),
             ),
+            IconButton(
+              icon: const Icon(Icons.filter_list),
+              onPressed: _showFilterMenu,
+            ),
+
             PopupMenuButton<String>(
               onSelected: (value) {
                 if (value == "settings") {
@@ -266,7 +574,7 @@ class _HomePageState extends State<HomePage> {
         body: Stack(
           children: [
             GoogleMap(
-              markers: Set.from(_tagMarkers),
+              markers: Set.from(_markers),
               circles: _circles, // Add circles to the map
               onMapCreated: _onMapCreated,
               initialCameraPosition: CameraPosition(
@@ -280,35 +588,7 @@ class _HomePageState extends State<HomePage> {
               myLocationEnabled: true,
               myLocationButtonEnabled: true,
             ),
-            Positioned(
-              top: 10,
-              left: 10,
-              child: Row(
-                children: [
-                  FilterChip(
-                    label: const Text("Verified"),
-                    selected: showVerified,
-                    onSelected: (value) {
-                      setState(() {
-                        showVerified = value;
-                        _updateMarkers();
-                      });
-                    },
-                  ),
-                  const SizedBox(width: 10),
-                  FilterChip(
-                    label: const Text("Unverified"),
-                    selected: showUnverified,
-                    onSelected: (value) {
-                      setState(() {
-                        showUnverified = value;
-                        _updateMarkers();
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ),
+
           ],
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
@@ -360,11 +640,11 @@ class _HomePageState extends State<HomePage> {
 
   void _handleTap(LatLng pos) {
     if (isTagging) {
-      _tagMarkers.removeLast();
+      _markers.removeLast();
     }
 
     setState(() {
-      _tagMarkers.add(
+      _markers.add(
         Marker(
           markerId: MarkerId(pos.toString()),
           position: pos,
@@ -390,7 +670,7 @@ class _HomePageState extends State<HomePage> {
                         Navigator.pop(context);
                         setState(() {
                           isTagging = false;
-                          _tagMarkers.removeLast();
+                          _markers.removeLast();
                         });
                       },
                       child: const Text("No Thanks"),
