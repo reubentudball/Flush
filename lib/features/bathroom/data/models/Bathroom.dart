@@ -1,6 +1,8 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+enum AccessType { public, private, business }
+
 class Bathroom {
   final String? id;
   final String title;
@@ -17,6 +19,8 @@ class Bathroom {
   final CollectionReference? reviews;
   final List<dynamic>? comments;
   final DateTime? updatedAt;
+  final String bathroomType;
+  final String accessType;
 
   Bathroom({
     this.id,
@@ -34,6 +38,8 @@ class Bathroom {
     this.reviews,
     this.comments,
     this.updatedAt,
+    required this.bathroomType,
+    required this.accessType,
   });
 
   Map<String, dynamic> toJson() {
@@ -54,6 +60,8 @@ class Bathroom {
       "reviews": reviews,
       "comments": comments ?? [],
       "updatedAt": updatedAt?.toUtc().toIso8601String(),
+      "bathroomType": bathroomType,
+      "accessType": accessType,
     };
   }
 
@@ -95,7 +103,9 @@ class Bathroom {
       updatedAt: data["updatedAt"] != null
           ? DateTime.parse(data["updatedAt"]).toLocal()
           : null,
+      bathroomType: data["bathroomType"] ?? "Unknown",
+
+      accessType: data["accessType"] ?? "Unknown",
     );
   }
 }
-

@@ -36,3 +36,21 @@ class AccessibilityConstants {
     "Wide Doorways",
   ];
 }
+
+class BathroomTypeConstants {
+  static const List<String> bathroomTypes = [
+    "Men's",
+    "Women's",
+    "Family",
+    "Unisex",
+    "Other"
+  ];
+}
+
+class AccessTypeConstants {
+  static const List<String> accessTypes = [
+    "Public",
+    "Private",
+    "Business"
+  ];
+}
